@@ -32,12 +32,18 @@ namespace bachelor_work_backend
         {
             services.AddCors(opt =>
             {
-                opt.AddPolicy(EnableCorsPolicy, builder =>
-                {
-                    builder.AllowAnyOrigin()
+                //opt.AddPolicy(EnableCorsPolicy, builder =>
+                //{
+                //    builder.AllowAnyOrigin()
+                //    .AllowAnyHeader()
+                //    .AllowAnyMethod();
+                //});
+                opt.AddPolicy(EnableCorsPolicy,
+                    builder => builder.WithOrigins("http://localhost:4200")
+                    .SetIsOriginAllowed((host) => true)
+                    .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
-                });
+                    .AllowCredentials());
             });
 
             services.AddAuthentication(opt =>
@@ -70,6 +76,10 @@ namespace bachelor_work_backend
             }
 
             app.UseCors(EnableCorsPolicy);
+
+            app.UseCors(
+                options => options.WithOrigins("http://localhost:4200").AllowAnyMethod()
+            );
 
             app.UseAuthentication();
 

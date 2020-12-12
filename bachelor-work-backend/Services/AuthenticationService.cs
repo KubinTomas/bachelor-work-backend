@@ -1,4 +1,5 @@
 ﻿using bachelor_work_backend.Models;
+using bachelor_work_backend.Models.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,8 @@ namespace bachelor_work_backend.Services
 
                 var claims = new List<Claim>
                 {
-                    new Claim("StagToken", "true")
+                    new Claim(CustomClaims.StagToken, "true"),
+                    new Claim(CustomClaims.UserId, "0"),
                 };
 
                 var tokenOptions = new JwtSecurityToken(

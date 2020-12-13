@@ -18,9 +18,9 @@ namespace bachelor_work_backend.Services.Stag
             this.stagApiUrl = stagApiUrl;
         }
 
-        public User GetStagUser(string wscookie)
+        public async Task<User> GetStagUserAsync(string wscookie)
         {
-
+            var client = ClientFactory.CreateClient();
             // TODO - Send HTTP requests
             //using (var client = new HttpClient())
             //{
@@ -29,14 +29,14 @@ namespace bachelor_work_backend.Services.Stag
             //}
 
 
-            return null;
+            return default;
         }
 
-        public async Task<StagUserInfo> GetStagUserListForLoginTicket(string ticket)
+        public async Task<StagUserInfo> GetStagUserListForLoginTicketAsync(string ticket)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/help/getStagUserListForLoginTicket");
 
-            using (var client = new HttpClient())
+            using (var client = ClientFactory.CreateClient())
             {
                 var response = await client.SendAsync(request);
 

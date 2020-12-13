@@ -60,9 +60,9 @@ namespace bachelor_work_backend.Services
             return true;
         }
 
-        public User GetStagUser(string wscookie)
+        public async Task<User> GetStagUserAsync(string wscookie)
         {
-            return StagApiService.StagUserApiService.GetStagUser(wscookie);
+            return await StagApiService.StagUserApiService.GetStagUserAsync(wscookie);
         }
 
         public User GetDbUser(int userId)

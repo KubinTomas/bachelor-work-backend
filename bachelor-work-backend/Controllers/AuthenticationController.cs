@@ -20,7 +20,6 @@ namespace bachelor_work_backend.Controllers
     public class AuthenticationController : ControllerBase
     {
         public AuthenticationService AuthenticationService { get; private set; }
-        public StagApiService StagApiService { get; private set; }
 
         public IConfiguration Configuration { get; private set; }
         public IHttpClientFactory ClientFactory { get; private set; }
@@ -28,8 +27,7 @@ namespace bachelor_work_backend.Controllers
         {
             ClientFactory = clientFactory;
             Configuration = configuration;
-            StagApiService = new StagApiService(configuration, clientFactory);
-            AuthenticationService = new AuthenticationService(configuration, StagApiService);
+            AuthenticationService = new AuthenticationService(configuration, new StagApiService(configuration, clientFactory));
         }
 
         [HttpPost, Route("login")]
@@ -40,7 +38,6 @@ namespace bachelor_work_backend.Controllers
                 return BadRequest("Invalid client request");
             }
 
-            // validation check 
             var authenticationResult = AuthenticationService.Authorize();
 
             if (authenticationResult.Result == AuthorizationResultEnum.ok)
@@ -55,7 +52,7 @@ namespace bachelor_work_backend.Controllers
 
         [HttpGet, Route("user")]
         [Authorize]
-        public IActionResult GetUser()
+        public async Task<IActionResult> GetUser()
         {
             var user = User;
             var claims = user.Claims.ToList();
@@ -67,7 +64,7 @@ namespace bachelor_work_backend.Controllers
             {
                 var wscookie = Request.Cookies["WSCOOKIE"];
 
-                return Ok(AuthenticationService.GetStagUser(wscookie));
+                return Ok(await AuthenticationService.GetStagUserAsync(wscookie));
             
             }
             else

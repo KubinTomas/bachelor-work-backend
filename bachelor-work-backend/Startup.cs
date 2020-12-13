@@ -30,6 +30,21 @@ namespace bachelor_work_backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // UI use PROXY
+            // DEPLOYE, pouzit URL a UI pod domenu
+            // V ramci rychlosti zahodit cors
+
+            // Mozna auth nahradit COOKIE ...
+            // https://docs.microsoft.com/en-us/aspnet/core/security/authentication/cookie?view=aspnetcore-5.0&fbclid=IwAR2I7Ib6eTE6BlIj6EQ9REYDL5iLrFPoWYrduJODP3gfxpAouyGFiI3RE1s
+
+            // IOPTIONS misto configu
+            // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0&fbclid=IwAR2rQZwHZjHpcuRZIZx555wgaP6DNwENz6y2OF5aL5YnL9ziaGEPP_FzgjQ
+
+            // appsettings dev... pred deplo.. NEDAVAT DO GITU!
+
+            // HttpClient approche
+            // https://stackoverflow.com/questions/59280153/dependency-injection-httpclient-or-httpclientfactory?fbclid=IwAR2DMiQrsPyCA1fy64UU0qOtO1EPA09kFc4LVK_aHnvTAFQtZboGi_PAXLg
+
             services.AddCors(opt =>
             {
                 //opt.AddPolicy(EnableCorsPolicy, builder =>
@@ -46,6 +61,10 @@ namespace bachelor_work_backend
                     .AllowCredentials());
             });
 
+            //var key = Configuration.GetSection("AppSettings").GetValue<string>("StagApiURL");
+            
+            // Issuer a audience dat taky do app settings
+
             services.AddAuthentication(opt =>
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -60,7 +79,7 @@ namespace bachelor_work_backend
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = "https://localhost:44380",
                     ValidAudience = "http://localhost:4200",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345")) // todo dat jako env variable
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("SecretKey"))) // todo dat jako env variable
                 };
             });
 

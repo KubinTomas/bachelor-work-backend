@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.Services;
+using bachelor_work_backend.Services.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace bachelor_work_backend.Controllers
 {
@@ -17,10 +19,17 @@ namespace bachelor_work_backend.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private AuthenticationService authenticationService;
-        public AuthenticationController()
+        public AuthenticationService AuthenticationService { get; private set; }
+        public StagApiService StagApiService { get; private set; }
+
+        public IConfiguration Configuration { get; private set; }
+        public IHttpClientFactory ClientFactory { get; private set; }
+        public AuthenticationController(IConfiguration configuration, IHttpClientFactory clientFactory)
         {
-            authenticationService = new AuthenticationService();
+            ClientFactory = clientFactory;
+            Configuration = configuration;
+            StagApiService = new StagApiService(configuration, clientFactory);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService);
         }
 
         [HttpPost, Route("login")]
@@ -32,11 +41,11 @@ namespace bachelor_work_backend.Controllers
             }
 
             // validation check 
-            var authenticationResult = authenticationService.Authorize();
+            var authenticationResult = AuthenticationService.Authorize();
 
             if (authenticationResult.Result == AuthorizationResultEnum.ok)
             {
-                authenticationService.Authorize();
+                AuthenticationService.Authorize();
 
                 return Ok(new { Token = authenticationResult.TokenString });
             }
@@ -51,32 +60,22 @@ namespace bachelor_work_backend.Controllers
             var user = User;
             var claims = user.Claims.ToList();
 
-            var stagUserClaim = user.Claims.ToList().SingleOrDefault(c => c.Type == CustomClaims.StagToken);
+            var stagTokenClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.StagToken);
+            var userIdClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserId);
 
-            if (stagUserClaim.Value == "true")
+            if (stagTokenClaim.Value == "true")
             {
-                // TODO RETURN STAG USER, VIA API
-                var WSCOOKIE = Request.Cookies["WSCOOKIE"];
+                var wscookie = Request.Cookies["WSCOOKIE"];
 
-                // TODO - Send HTTP requests
-                //using (var client = new HttpClient())
-                //{
-                //    var response = client.GetAsync("umbraco/api/Member/Get?username=test");
-                //    response.Wait();
-                //}
+                return Ok(AuthenticationService.GetStagUser(wscookie));
             
             }
             else
             {
-                // RETURN DB USER VIA ID
+                var userId = int.Parse(userIdClaim.Value);
+
+                return Ok(AuthenticationService.GetDbUser(userId));
             }
-
-            //var stream = Request.get
-            //var handler = new JwtSecurityTokenHandler();
-            //var jsonToken = handler.ReadToken(stream);
-            //var tokenS = handler.ReadToken(stream) as JwtSecurityToken
-
-            return Ok();
         }
     }
 }

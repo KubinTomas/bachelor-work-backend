@@ -1,5 +1,7 @@
 ﻿using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
+using bachelor_work_backend.Services.Utils;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,15 @@ namespace bachelor_work_backend.Services
 {
     public class AuthenticationService
     {
+        public IConfiguration Configuration { get; private set; }
+        public StagApiService StagApiService { get; private set; }
+
+        public AuthenticationService(IConfiguration configuration, StagApiService stagApiService)
+        {
+            Configuration = configuration;
+            StagApiService = stagApiService;
+        }
+
         public AuthenticationResult Authorize()
         {
             if (IsLoginValid())
@@ -47,6 +58,16 @@ namespace bachelor_work_backend.Services
         public bool IsLoginValid()
         {
             return true;
+        }
+
+        public User GetStagUser(string wscookie)
+        {
+            return StagApiService.StagUserApiService.GetStagUser(wscookie);
+        }
+
+        public User GetDbUser(int userId)
+        {
+            throw new NotImplementedException("DbUser side is not implemented yet");
         }
     }
 }

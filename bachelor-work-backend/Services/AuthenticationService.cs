@@ -41,7 +41,7 @@ namespace bachelor_work_backend.Services
                     issuer: "https://localhost:44380",
                     audience: "http://localhost:4200",
                     claims: claims,
-                    expires: DateTime.Now.AddMinutes(5),
+                    expires: DateTime.Now.AddMinutes(60),
                     signingCredentials: signingCredentials
                     );
 

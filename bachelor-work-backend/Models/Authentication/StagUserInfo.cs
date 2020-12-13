@@ -12,7 +12,7 @@ namespace bachelor_work_backend.Models.Authentication
         public string RoleNazev { get; set; }
         public string Fakulta { get; set; }
         public string Katedra { get; set; }
-        public int? UcitIdno { get; set; }
+        public string UcitIdno { get; set; }
         public string Aktivni { get; set; }
         public bool HasAnyRozvrharRole { get; set; }
     }

@@ -71,5 +71,10 @@ namespace bachelor_work_backend.Services
         {
             throw new NotImplementedException("DbUser side is not implemented yet");
         }
+
+        public Task<bool> IsStagUserCookieValidAsync(string wscookie)
+        {
+            return StagApiService.StagUserApiService.IsStagUserCookieValidAsync(wscookie);
+        }
     }
 }

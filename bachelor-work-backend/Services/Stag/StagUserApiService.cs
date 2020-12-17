@@ -22,7 +22,10 @@ namespace bachelor_work_backend.Services.Stag
             ClientFactory = clientFactory;
             this.stagApiUrl = stagApiUrl;
         }
-
+        public async Task<bool> IsStagUserCookieValidAsync(string wscookie)
+        {
+            return await GetStagUserListForLoginTicketAsync(wscookie) != null;
+        }
         public async Task<User> GetStagUserAsync(string wscookie)
         {
             var stagUserInfoList = await GetStagUserListForLoginTicketAsync(wscookie);
@@ -108,7 +111,7 @@ namespace bachelor_work_backend.Services.Stag
             return default;
         }
 
-        public async Task<List<StagUserInfo>> GetStagUserListForLoginTicketAsync(string ticket)
+        public async Task<List<StagUserInfo>?> GetStagUserListForLoginTicketAsync(string ticket)
         {
             NameValueCollection nvc = new NameValueCollection();
             nvc.Add("outputFormat", "JSON");

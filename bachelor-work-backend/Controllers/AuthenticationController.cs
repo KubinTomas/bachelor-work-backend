@@ -117,6 +117,13 @@ namespace bachelor_work_backend.Controllers
                     return Unauthorized();
                 }
 
+                var isWscookieValid = await AuthenticationService.IsStagUserCookieValidAsync(wscookie);
+
+                if (!isWscookieValid)
+                {
+                    return Unauthorized();
+                }
+
                 return Ok(true);
 
             }

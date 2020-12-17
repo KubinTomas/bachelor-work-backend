@@ -30,5 +30,10 @@ namespace bachelor_work_backend.Services.Authentication
         {
             throw new NotImplementedException();
         }
+
+        public Task<bool> IsStagUserCookieValidAsync(string wscookie)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

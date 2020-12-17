@@ -12,6 +12,7 @@ namespace bachelor_work_backend.Services.Authentication
     {
         Task<AuthenticationResult> Authorize();
         Task<User> GetStagUserAsync(string token = "");
+        Task<bool> IsStagUserCookieValidAsync(string wscookie);
         User GetDbUser(int userId);
     }
 }

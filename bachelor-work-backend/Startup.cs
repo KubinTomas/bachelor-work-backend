@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -62,26 +64,32 @@ namespace bachelor_work_backend
             });
 
             //var key = Configuration.GetSection("AppSettings").GetValue<string>("StagApiURL");
-            
+
             // Issuer a audience dat taky do app settings
 
-            services.AddAuthentication(opt =>
-            {
-                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = "https://localhost:44380",
-                    ValidAudience = "http://localhost:4200",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("SecretKey"))) // todo dat jako env variable
-                };
-            });
+            //[Obsolete]
+            //services.AddAuthentication(opt =>
+            //{
+            //    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //}).AddJwtBearer(options =>
+            //{
+            //    options.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuer = true,
+            //        ValidateAudience = true,
+            //        ValidateLifetime = true,
+            //        ValidateIssuerSigningKey = true,
+            //        ValidIssuer = "https://localhost:44380",
+            //        ValidAudience = "http://localhost:4200",
+            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("SecretKey"))) // todo dat jako env variable
+            //    };
+            //});
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .AddCookie(options =>
+                    {
+
+                    });
 
             services.AddControllers();
             services.AddHttpClient();
@@ -108,6 +116,11 @@ namespace bachelor_work_backend
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.None,
+            });
 
             app.UseEndpoints(endpoints =>
             {

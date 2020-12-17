@@ -1,6 +1,8 @@
 ﻿using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
+using bachelor_work_backend.Services.Authentication;
 using bachelor_work_backend.Services.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -13,22 +15,22 @@ using System.Threading.Tasks;
 
 namespace bachelor_work_backend.Services
 {
-    public class AuthenticationService
+    public class JwtAuthenticationService: IAuthenticationService
     {
         public IConfiguration Configuration { get; private set; }
         public StagApiService StagApiService { get; private set; }
 
-        public AuthenticationService(IConfiguration configuration, StagApiService stagApiService)
+        public JwtAuthenticationService(IConfiguration configuration, StagApiService stagApiService)
         {
             Configuration = configuration;
             StagApiService = stagApiService;
         }
 
-        public AuthenticationResult Authorize()
+        public async Task<AuthenticationResult> Authorize()
         {
             if (IsLoginValid())
             {
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("SecretKey")));
                 var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
                 var claims = new List<Claim>

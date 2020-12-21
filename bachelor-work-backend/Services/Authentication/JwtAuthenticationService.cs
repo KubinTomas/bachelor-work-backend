@@ -76,5 +76,10 @@ namespace bachelor_work_backend.Services
         {
             return StagApiService.StagUserApiService.IsStagUserCookieValidAsync(wscookie);
         }
+
+        public Task<string?> GetUcitelIdnoAsync(string wscookie)
+        {
+            return StagApiService.StagUserApiService.GetUcitelIdnoAsync(wscookie);
+        }
     }
 }

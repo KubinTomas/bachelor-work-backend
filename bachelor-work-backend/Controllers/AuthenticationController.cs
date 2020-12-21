@@ -23,7 +23,6 @@ namespace bachelor_work_backend.Controllers
     public class AuthenticationController : ControllerBase
     {
         public Services.Authentication.IAuthenticationService AuthenticationService { get; private set; }
-
         public IConfiguration Configuration { get; private set; }
         public IHttpClientFactory ClientFactory { get; private set; }
         public AuthenticationController(IConfiguration configuration, IHttpClientFactory clientFactory)

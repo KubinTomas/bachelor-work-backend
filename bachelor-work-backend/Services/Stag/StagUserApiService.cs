@@ -22,13 +22,25 @@ namespace bachelor_work_backend.Services.Stag
             ClientFactory = clientFactory;
             this.stagApiUrl = stagApiUrl;
         }
+        public async Task<string?> GetUcitelIdnoAsync(string wscookie)
+        {
+            var user = await GetStagUserAsync(wscookie);
+
+            return user == null || string.IsNullOrEmpty(user.activeStagUserInfo.UcitIdno) ? null : user.activeStagUserInfo.UcitIdno;
+        }
         public async Task<bool> IsStagUserCookieValidAsync(string wscookie)
         {
             return await GetStagUserListForLoginTicketAsync(wscookie) != null;
         }
-        public async Task<User> GetStagUserAsync(string wscookie)
+        public async Task<User?> GetStagUserAsync(string wscookie)
         {
             var stagUserInfoList = await GetStagUserListForLoginTicketAsync(wscookie);
+
+            if(stagUserInfoList == null)
+            {
+                return null;
+            }
+
             var stagUser = stagUserInfoList.First().UserName;
 
             var actualStagUser = await GetStagUserForActualUserAsync(stagUser, wscookie);

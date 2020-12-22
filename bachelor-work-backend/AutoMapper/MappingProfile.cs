@@ -15,6 +15,9 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<SubjectDTO, Subject>();
             CreateMap<Subject, SubjectDTO>()
                 .ForMember(c => c.KatedraFakulta, s => s.MapFrom(c => c.Katedra + "/" + c.Fakulta));
+
+            CreateMap<SubjectInYearDTO, SubjectInYear>();
+            CreateMap<SubjectInYear, SubjectInYearDTO>();
         }
     }
 }

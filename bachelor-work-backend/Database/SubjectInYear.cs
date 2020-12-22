@@ -8,14 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bachelor_work_backend.Database
 {
-    [Table("Subject")]
-    public partial class Subject
+    [Table("SubjectInYear")]
+    public partial class SubjectInYear
     {
-        public Subject()
-        {
-            SubjectInYears = new HashSet<SubjectInYear>();
-        }
-
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -24,24 +19,23 @@ namespace bachelor_work_backend.Database
         [StringLength(100)]
         public string Name { get; set; }
         [Required]
-        [Column("ucitIdno")]
-        [StringLength(50)]
-        public string UcitIdno { get; set; }
-        [Required]
-        [Column("katedra")]
-        [StringLength(50)]
-        public string Katedra { get; set; }
-        [Required]
-        [Column("fakulta")]
-        [StringLength(50)]
-        public string Fakulta { get; set; }
+        [Column("year")]
+        [StringLength(20)]
+        public string Year { get; set; }
         [Column("description")]
         [StringLength(1000)]
         public string Description { get; set; }
+        [Required]
+        [Column("ucitIdno")]
+        [StringLength(50)]
+        public string UcitIdno { get; set; }
         [Column("dateIn", TypeName = "datetime")]
         public DateTime DateIn { get; set; }
+        [Column("subjectId")]
+        public int SubjectId { get; set; }
 
-        [InverseProperty(nameof(SubjectInYear.Subject))]
-        public virtual ICollection<SubjectInYear> SubjectInYears { get; set; }
+        [ForeignKey(nameof(SubjectId))]
+        [InverseProperty("SubjectInYears")]
+        public virtual Subject Subject { get; set; }
     }
 }

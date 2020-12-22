@@ -18,6 +18,7 @@ namespace bachelor_work_backend.Database
         }
 
         public virtual DbSet<Subject> Subjects { get; set; }
+        public virtual DbSet<SubjectInYear> SubjectInYears { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -32,15 +33,13 @@ namespace bachelor_work_backend.Database
         {
             modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
 
-            modelBuilder.Entity<Subject>(entity =>
+            modelBuilder.Entity<SubjectInYear>(entity =>
             {
-                entity.Property(e => e.Fakulta).IsFixedLength(true);
-
-                entity.Property(e => e.Katedra).IsFixedLength(true);
-
-                entity.Property(e => e.Name).IsFixedLength(true);
-
-                entity.Property(e => e.UcitIdno).IsFixedLength(true);
+                entity.HasOne(d => d.Subject)
+                    .WithMany(p => p.SubjectInYears)
+                    .HasForeignKey(d => d.SubjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_SubjectInYear_Subject");
             });
 
             OnModelCreatingPartial(modelBuilder);

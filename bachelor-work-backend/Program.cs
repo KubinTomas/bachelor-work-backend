@@ -24,4 +24,4 @@ namespace bachelor_work_backend
                 });
     }
 }
-//Scaffold-DbContext "Data Source=DESKTOP-I36NBNO;initial catalog=BachelorkWorkDb;Integrated Security=True;ConnectRetryCount=0" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Database -Context BachContext  -DataAnnotations
+//Scaffold-DbContext "Data Source=DESKTOP-I36NBNO;initial catalog=BachelorkWorkDb;Integrated Security=True;ConnectRetryCount=0" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Database -Context BachContext  -DataAnnotations -force

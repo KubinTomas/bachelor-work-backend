@@ -95,9 +95,31 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            var subjects = await SubjectService.GetDTO(ucitelIdno, wscookie);
+            var subjects = await SubjectService.GetDTOAsync(ucitelIdno, wscookie);
 
             return Ok(subjects);
+        }
+
+        [HttpGet, Route("{subjectId}")]
+        public async Task<IActionResult> Get(int subjectId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var subject = await SubjectService.GetDTOAsync(subjectId, ucitelIdno, wscookie);
+
+            return Ok(subject);
         }
 
     }

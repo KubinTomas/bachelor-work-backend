@@ -27,7 +27,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             context.SaveChanges();
         }
 
-        public async Task<List<SubjectDTO>> GetDTO(string ucitelIdno, string wscookie)
+        public async Task<List<SubjectDTO>> GetDTOAsync(string ucitelIdno, string wscookie)
         {
             var subjectsDTO = new List<SubjectDTO>();
 
@@ -40,7 +40,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subject.UcitIdno.Trim(), wscookie);
                 var subjectDto = mapper.Map<Subject, SubjectDTO>(subject);
 
-                if(ucitelInfo != null)
+                if (ucitelInfo != null)
                 {
                     subjectDto.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
                 }
@@ -50,5 +50,24 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             return subjectsDTO;
         }
+
+        public async Task<SubjectDTO> GetDTOAsync(int subjectId, string ucitelIdno, string wscookie)
+        {
+            var subjectDTO = new SubjectDTO();
+
+            var subject = context.Subjects.SingleOrDefault(c => c.Id == subjectId);
+
+            var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subject.UcitIdno.Trim(), wscookie);
+
+            subjectDTO = mapper.Map<Subject, SubjectDTO>(subject);
+
+            if (ucitelInfo != null)
+            {
+                subjectDTO.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+            }
+
+            return subjectDTO;
+        }
     }
+
 }

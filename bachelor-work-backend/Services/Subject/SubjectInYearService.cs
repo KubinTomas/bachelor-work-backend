@@ -55,5 +55,22 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             return subjectsDTO;
         }
+
+        public async Task<SubjectInYearDTO> GetSingleDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
+        {
+            var subjectInYear = context.SubjectInYears.SingleOrDefault(c => c.Id == subjectInYearId);
+            var subjectInYearDto = mapper.Map<SubjectInYear, SubjectInYearDTO>(subjectInYear);
+
+            var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subjectInYear.UcitIdno.Trim(), wscookie);
+
+            if (ucitelInfo != null)
+            {
+                subjectInYearDto.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+            }
+
+            return subjectInYearDto;
+        }
+
+
     }
 }

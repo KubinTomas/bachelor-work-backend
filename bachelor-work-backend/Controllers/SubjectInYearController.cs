@@ -100,5 +100,27 @@ namespace bachelor_work_backend.Controllers
             return Ok(subjects);
         }
 
+        [HttpGet, Route("detail/{subjectInYearId}")]
+        public async Task<IActionResult> GetDetail(int subjectInYearId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var subject = await SubjectInYearService.GetSingleDTOAsync(subjectInYearId, ucitelIdno, wscookie);
+
+            return Ok(subject);
+        }
+
     }
 }

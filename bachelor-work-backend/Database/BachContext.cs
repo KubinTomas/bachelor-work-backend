@@ -17,6 +17,7 @@ namespace bachelor_work_backend.Database
         {
         }
 
+        public virtual DbSet<Block> Blocks { get; set; }
         public virtual DbSet<Subject> Subjects { get; set; }
         public virtual DbSet<SubjectInYear> SubjectInYears { get; set; }
 

@@ -18,6 +18,9 @@ namespace bachelor_work_backend.AutoMapper
 
             CreateMap<SubjectInYearDTO, SubjectInYear>();
             CreateMap<SubjectInYear, SubjectInYearDTO>();
+
+            CreateMap<Block, BlockDTO>();
+            CreateMap<BlockDTO, Block>();
         }
     }
 }

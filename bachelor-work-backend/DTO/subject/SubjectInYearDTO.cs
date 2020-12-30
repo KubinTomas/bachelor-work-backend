@@ -12,7 +12,7 @@ namespace bachelor_work_backend.DTO.subject
         public string Name { get; set; }
         public string Year { get; set; }
         public string? Description { get; set; }
-        public string? ucitelName { get; set; }
-        public DateTime dateIn { get; set; }
+        public string? UcitelName { get; set; }
+        public DateTime DateIn { get; set; }
     }
 }

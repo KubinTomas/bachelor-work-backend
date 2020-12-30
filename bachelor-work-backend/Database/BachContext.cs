@@ -20,6 +20,7 @@ namespace bachelor_work_backend.Database
         public virtual DbSet<Block> Blocks { get; set; }
         public virtual DbSet<Subject> Subjects { get; set; }
         public virtual DbSet<SubjectInYear> SubjectInYears { get; set; }
+        public virtual DbSet<SubjectInYearTerm> SubjectInYearTerms { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -34,6 +35,15 @@ namespace bachelor_work_backend.Database
         {
             modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
 
+            modelBuilder.Entity<Block>(entity =>
+            {
+                entity.HasOne(d => d.SubjectInYearTerm)
+                    .WithMany(p => p.Blocks)
+                    .HasForeignKey(d => d.SubjectInYearTermId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Block_SubjectInYearTerm");
+            });
+
             modelBuilder.Entity<SubjectInYear>(entity =>
             {
                 entity.HasOne(d => d.Subject)
@@ -41,6 +51,15 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.SubjectId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_SubjectInYear_Subject");
+            });
+
+            modelBuilder.Entity<SubjectInYearTerm>(entity =>
+            {
+                entity.HasOne(d => d.SubjectInYear)
+                    .WithMany(p => p.SubjectInYearTerms)
+                    .HasForeignKey(d => d.SubjectInYearId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_SubjectInYearTerm_SubjectInYear");
             });
 
             OnModelCreatingPartial(modelBuilder);

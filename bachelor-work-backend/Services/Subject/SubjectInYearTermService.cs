@@ -9,39 +9,44 @@ using System.Threading.Tasks;
 
 namespace bachelor_work_backend.Services.SubjectFolder
 {
-    public class SubjectInYearService
+    public class SubjectInYearTermService
     {
         private readonly BachContext context;
         private readonly IMapper mapper;
         public StagApiService StagApiService { get; private set; }
-        public SubjectInYearService(BachContext context, IMapper mapper, StagApiService StagApiService)
+        public SubjectInYearTermService(BachContext context, IMapper mapper, StagApiService StagApiService)
         {
             this.context = context;
             this.mapper = mapper;
             this.StagApiService = StagApiService;
         }
 
-        public void Create(SubjectInYear subject)
+        public void Create(SubjectInYearTerm subject)
         {
-            context.SubjectInYears.Add(subject);
+            context.SubjectInYearTerms.Add(subject);
             context.SaveChanges();
         }
 
-        public bool DoesYearInSubjectExists(int subjectId, string year)
+        public bool DoesTermExists(int subjectInYearId, string term)
         {
-            return context.SubjectInYears.Any(c => c.SubjectId == subjectId && c.Year.Trim() == year.Trim());
+            return context.SubjectInYearTerms.Any(c => c.SubjectInYearId == subjectInYearId && c.Term.Trim() == term.Trim());
         }
 
-        public async Task<List<SubjectInYearDTO>> GetDTOAsync(int subjectId, string ucitelIdno, string wscookie)
+        public List<string> GetAvailableTerms(int subjectInYearId)
         {
-            var subjectsDTO = new List<SubjectInYearDTO>();
+            return context.SubjectInYearTerms.Where(c => c.SubjectInYearId == subjectInYearId).Select(c => c.Term).ToList();
+        }
 
-            var subjects = context.SubjectInYears.Where(c => c.SubjectId == subjectId).ToList();
+        public async Task<List<SubjectInYearTermDTO>> GetDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
+        {
+            var subjectsDTO = new List<SubjectInYearTermDTO>();
+
+            var subjects = context.SubjectInYearTerms.Where(c => c.SubjectInYearId == subjectInYearId).ToList();
 
             foreach (var subject in subjects)
             {
                 var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subject.UcitIdno.Trim(), wscookie);
-                var subjectDto = mapper.Map<SubjectInYear, SubjectInYearDTO>(subject);
+                var subjectDto = mapper.Map<SubjectInYearTerm, SubjectInYearTermDTO>(subject);
 
                 if (ucitelInfo != null)
                 {
@@ -51,15 +56,15 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 subjectsDTO.Add(subjectDto);
             }
 
-            subjectsDTO = subjectsDTO.OrderByDescending(c => int.Parse(c.Year.Trim().Split('-')[0])).ToList();
+            subjectsDTO = subjectsDTO.OrderByDescending(c => c.Term).ToList();
 
             return subjectsDTO;
         }
 
-        public async Task<SubjectInYearDTO> GetSingleDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
+        public async Task<SubjectInYearTermDTO> GetSingleDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
         {
             var subjectInYear = context.SubjectInYears.SingleOrDefault(c => c.Id == subjectInYearId);
-            var subjectInYearDto = mapper.Map<SubjectInYear, SubjectInYearDTO>(subjectInYear);
+            var subjectInYearDto = mapper.Map<SubjectInYear, SubjectInYearTermDTO>(subjectInYear);
 
             var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subjectInYear.UcitIdno.Trim(), wscookie);
 

@@ -14,13 +14,18 @@ namespace bachelor_work_backend.AutoMapper
         {
             CreateMap<SubjectDTO, Subject>();
             CreateMap<Subject, SubjectDTO>()
-                .ForMember(c => c.KatedraFakulta, s => s.MapFrom(c => c.Katedra + "/" + c.Fakulta));
+                .ForMember(c => c.FakultaKatedra, s => s.MapFrom(c => c.Fakulta + "/" + c.Katedra));
 
             CreateMap<SubjectInYearDTO, SubjectInYear>();
             CreateMap<SubjectInYear, SubjectInYearDTO>();
 
             CreateMap<Block, BlockDTO>();
             CreateMap<BlockDTO, Block>();
+
+            CreateMap<SubjectInYearTermDTO, SubjectInYearTerm>();
+            CreateMap<SubjectInYearTerm, SubjectInYearTermDTO>();
+
+            
         }
     }
 }

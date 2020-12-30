@@ -5,14 +5,11 @@ using System.Threading.Tasks;
 
 namespace bachelor_work_backend.DTO.subject
 {
-    public class SubjectDTO
+    public class SubjectInYearTermDTO
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string FakultaKatedra { get; set; }
-        public string Katedra { get; set; }
-        public string Fakulta { get; set; }
-        public string? Description { get; set; }
+        public int SubjectId { get; set; }
+        public string Term { get; set; }
         public string? UcitelName { get; set; }
         public DateTime DateIn { get; set; }
     }

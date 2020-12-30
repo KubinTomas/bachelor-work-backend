@@ -21,11 +21,46 @@ namespace bachelor_work_backend.Services.SubjectFolder
             this.StagApiService = StagApiService;
         }
 
+        public Subject? Get(int subjectId)
+        {
+            return context.Subjects.SingleOrDefault(c => c.Id == subjectId);
+        }
+        public void Delete(int subjectId)
+        {
+            var subject = context.Subjects.SingleOrDefault(c => c.Id == subjectId);
+
+            if (subject != null)
+            {
+                Delete(subject);
+            }
+        }
+        public void Delete(Subject subject)
+        {
+            subject.IsActive = false;
+            context.SaveChanges();
+        }
+
+        public void Update(SubjectDTO subjectDTO)
+        {
+            var subject = context.Subjects.SingleOrDefault(c => c.Id == subjectDTO.Id);
+
+            Update(subjectDTO, subject);
+        }
+
+        public void Update(SubjectDTO subjectDTO, Subject subject)
+        {
+            subject.Name = subjectDTO.Name;
+            subject.Description = subjectDTO.Description;
+
+            context.SaveChanges();
+        }
+
         public void Create(Subject subject)
         {
             context.Subjects.Add(subject);
             context.SaveChanges();
         }
+
 
         public async Task<List<SubjectDTO>> GetDTOAsync(string ucitelIdno, string wscookie)
         {
@@ -42,7 +77,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
                 if (ucitelInfo != null)
                 {
-                    subjectDto.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+                    subjectDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
                 }
 
                 subjectsDTO.Add(subjectDto);
@@ -63,7 +98,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             if (ucitelInfo != null)
             {
-                subjectDTO.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+                subjectDTO.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
             }
 
             return subjectDTO;

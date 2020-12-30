@@ -29,24 +29,25 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
         public async Task<List<BlockDTO>> GetDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
         {
-            var blocksDTO = new List<BlockDTO>();
+            //var blocksDTO = new List<BlockDTO>();
 
-            var blocks = context.Blocks.Where(c => c.SubjectInYearId == subjectInYearId).ToList();
+            //var blocks = context.Blocks.Where(c => c.SubjectInYearId == subjectInYearId).ToList();
 
-            foreach (var block in blocks)
-            {
-                var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(block.UcitIdno.Trim(), wscookie);
-                var blockDto = mapper.Map<Block, BlockDTO>(block);
+            //foreach (var block in blocks)
+            //{
+            //    var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(block.UcitIdno.Trim(), wscookie);
+            //    var blockDto = mapper.Map<Block, BlockDTO>(block);
 
-                if (ucitelInfo != null)
-                {
-                    blockDto.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
-                }
+            //    if (ucitelInfo != null)
+            //    {
+            //        blockDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+            //    }
 
-                blocksDTO.Add(blockDto);
-            }
+            //    blocksDTO.Add(blockDto);
+            //}
 
-            return blocksDTO;
+            //return blocksDTO;
+            return default;
         }
 
         public async Task<BlockDTO> GetSingleDTOAsync(int blockId, string ucitelIdno, string wscookie)
@@ -58,7 +59,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             if (ucitelInfo != null)
             {
-                blockDto.ucitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+                blockDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
             }
 
             return blockDto;

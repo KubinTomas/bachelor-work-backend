@@ -40,6 +40,8 @@ namespace bachelor_work_backend.Database
         public string Description { get; set; }
         [Column("dateIn", TypeName = "datetime")]
         public DateTime DateIn { get; set; }
+        [Column("isActive")]
+        public bool IsActive { get; set; }
 
         [InverseProperty(nameof(SubjectInYear.Subject))]
         public virtual ICollection<SubjectInYear> SubjectInYears { get; set; }

@@ -1,4 +1,5 @@
-﻿using bachelor_work_backend.Models;
+﻿using bachelor_work_backend.Database;
+using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.Services.Authentication;
 using bachelor_work_backend.Services.Utils;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace bachelor_work_backend.Services
 {
-    public class JwtAuthenticationService: IAuthenticationService
+    public class JwtAuthenticationService : IAuthenticationService
     {
         public IConfiguration Configuration { get; private set; }
         public StagApiService StagApiService { get; private set; }
@@ -81,5 +82,22 @@ namespace bachelor_work_backend.Services
         {
             return StagApiService.StagUserApiService.GetUcitelIdnoAsync(wscookie);
         }
+
+        public async Task<bool> CanDeleteOrUpdateSubject(string wscookie, Subject subject)
+        {
+            var stagUser = await GetStagUserAsync(wscookie);
+
+            if (stagUser == null)
+            {
+                return false;
+            }
+
+            var hasPermission = stagUser.stagUserInfo.Any(c => c.Fakulta == subject.Fakulta && 
+                                                               c.Katedra == subject.Katedra && 
+                                                               c.Role == Constants.StagRole.Vyucujici);
+
+            return hasPermission;
+        }
+
     }
 }

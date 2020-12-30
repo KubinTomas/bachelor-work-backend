@@ -14,8 +14,8 @@ namespace bachelor_work_backend.Database
         [Key]
         [Column("id")]
         public int Id { get; set; }
-        [Column("subjectInYearId")]
-        public int SubjectInYearId { get; set; }
+        [Column("subjectInYearTermId")]
+        public int SubjectInYearTermId { get; set; }
         [Required]
         [Column("name")]
         [StringLength(100)]
@@ -24,5 +24,11 @@ namespace bachelor_work_backend.Database
         [Column("ucitIdno")]
         [StringLength(50)]
         public string UcitIdno { get; set; }
+        [Column("isActive")]
+        public bool IsActive { get; set; }
+
+        [ForeignKey(nameof(SubjectInYearTermId))]
+        [InverseProperty("Blocks")]
+        public virtual SubjectInYearTerm SubjectInYearTerm { get; set; }
     }
 }

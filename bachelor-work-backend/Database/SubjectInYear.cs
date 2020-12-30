@@ -11,6 +11,11 @@ namespace bachelor_work_backend.Database
     [Table("SubjectInYear")]
     public partial class SubjectInYear
     {
+        public SubjectInYear()
+        {
+            SubjectInYearTerms = new HashSet<SubjectInYearTerm>();
+        }
+
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -33,9 +38,13 @@ namespace bachelor_work_backend.Database
         public DateTime DateIn { get; set; }
         [Column("subjectId")]
         public int SubjectId { get; set; }
+        [Column("isActive")]
+        public bool IsActive { get; set; }
 
         [ForeignKey(nameof(SubjectId))]
         [InverseProperty("SubjectInYears")]
         public virtual Subject Subject { get; set; }
+        [InverseProperty(nameof(SubjectInYearTerm.SubjectInYear))]
+        public virtual ICollection<SubjectInYearTerm> SubjectInYearTerms { get; set; }
     }
 }

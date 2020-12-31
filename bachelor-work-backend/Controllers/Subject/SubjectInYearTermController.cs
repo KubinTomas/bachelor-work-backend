@@ -147,8 +147,8 @@ namespace bachelor_work_backend.Controllers
             return Ok(subjects);
         }
 
-        [HttpGet, Route("detail/{subjectInYearId}")]
-        public async Task<IActionResult> GetDetail(int subjectInYearId)
+        [HttpGet, Route("detail/{termId}")]
+        public async Task<IActionResult> GetDetail(int termId)
         {
             var wscookie = Request.Cookies["WSCOOKIE"];
 
@@ -164,7 +164,7 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            var subject = await TermService.GetSingleDTOAsync(subjectInYearId, ucitelIdno, wscookie);
+            var subject = await TermService.GetSingleDTOAsync(termId, ucitelIdno, wscookie);
 
             return Ok(subject);
         }

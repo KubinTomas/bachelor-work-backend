@@ -23,9 +23,12 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<BlockDTO, Block>();
 
             CreateMap<SubjectInYearTermDTO, SubjectInYearTerm>();
-            CreateMap<SubjectInYearTerm, SubjectInYearTermDTO>();
+            CreateMap<SubjectInYearTerm, SubjectInYearTermDTO>()
+                      .ForMember(c => c.SubjectInYearName, s => s.MapFrom(c => c.SubjectInYear.Name))
+                      .ForMember(c => c.SubjectInYearYear, s => s.MapFrom(c => c.SubjectInYear.Year));
 
-            
+
+
         }
     }
 }

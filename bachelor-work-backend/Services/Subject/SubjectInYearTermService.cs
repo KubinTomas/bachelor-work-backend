@@ -111,19 +111,26 @@ namespace bachelor_work_backend.Services.SubjectFolder
             return subjectsDTO;
         }
 
-        public async Task<SubjectInYearTermDTO> GetSingleDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
+        public async Task<SubjectInYearTermDTO?> GetSingleDTOAsync(int termId, string ucitelIdno, string wscookie)
         {
-            var subjectInYear = context.SubjectInYears.SingleOrDefault(c => c.Id == subjectInYearId);
-            var subjectInYearDto = mapper.Map<SubjectInYear, SubjectInYearTermDTO>(subjectInYear);
+            var term = Get(termId);
 
-            var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subjectInYear.UcitIdno.Trim(), wscookie);
+            if(term == null)
+            {
+                return default;
+            }
+
+            var termDto = mapper.Map<SubjectInYearTerm, SubjectInYearTermDTO>(term);
+            termDto.SubjectId = term.SubjectInYear.SubjectId;
+
+            var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(term.UcitIdno.Trim(), wscookie);
 
             if (ucitelInfo != null)
             {
-                subjectInYearDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+                termDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
             }
 
-            return subjectInYearDto;
+            return termDto;
         }
 
 

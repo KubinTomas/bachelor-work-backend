@@ -9,6 +9,7 @@ namespace bachelor_work_backend.DTO.subject
     {
         public int Id { get; set; }
         public int SubjectId { get; set; }
+        public int SubjectInYearId { get; set; }
         public string Term { get; set; }
         public string? UcitelName { get; set; }
         public DateTime DateIn { get; set; }

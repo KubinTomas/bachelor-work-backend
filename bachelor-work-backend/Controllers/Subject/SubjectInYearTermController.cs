@@ -24,7 +24,8 @@ namespace bachelor_work_backend.Controllers
         private readonly IMapper mapper;
         private readonly BachContext context;
         public JwtAuthenticationService AuthenticationService { get; private set; }
-        public SubjectInYearService SubjectInYearService { get; private set; }
+        public SubjectInYearTermService TermService { get; private set; }
+        public SubjectService SubjectService { get; private set; }
         public StagApiService StagApiService { get; private set; }
         public IConfiguration Configuration { get; private set; }
         public IHttpClientFactory ClientFactory { get; private set; }
@@ -41,13 +42,14 @@ namespace bachelor_work_backend.Controllers
             Configuration = configuration;
             StagApiService = new StagApiService(configuration, clientFactory);
 
-            SubjectInYearService = new SubjectInYearService(context, mapper, StagApiService);
+            TermService = new SubjectInYearTermService(context, mapper, StagApiService);
+            SubjectService = new SubjectService(context, mapper, StagApiService);
             AuthenticationService = new JwtAuthenticationService(configuration, StagApiService);
         }
 
 
         [HttpPost, Route("create")]
-        public async Task<IActionResult> Create(SubjectInYearDTO subjectInYearDTO)
+        public async Task<IActionResult> Create(SubjectInYearTermDTO termDTO)
         {
             var wscookie = Request.Cookies["WSCOOKIE"];
 
@@ -63,20 +65,65 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            if(SubjectInYearService.DoesYearInSubjectExists(subjectInYearDTO.SubjectId, subjectInYearDTO.Year))
+            if(TermService.DoesTermExists(termDTO.SubjectInYearId, termDTO.Term))
             {
-                return BadRequest("year-for-this-subject-exists");
+                return BadRequest("term-for-this-year-exists");
             }
 
-            var subject = mapper.Map<SubjectInYearDTO, SubjectInYear>(subjectInYearDTO);
-            subject.UcitIdno = ucitelIdno;
-            subject.DateIn = DateTime.Now;
+            var subject = SubjectService.Get(termDTO.SubjectId);
 
-            SubjectInYearService.Create(subject);
+            if (subject == null)
+            {
+                return BadRequest("invalidSubjectId");
+            }
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid("invalidPermission");
+            }
+
+
+            var term = mapper.Map<SubjectInYearTermDTO, SubjectInYearTerm>(termDTO);
+            term.UcitIdno = ucitelIdno;
+
+            TermService.Create(term);
 
             return Ok();
         }
 
+
+        [HttpDelete, Route("delete/{termId}")]
+        public async Task<IActionResult> Delete(int termId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var term = TermService.Get(termId);
+
+            if (term == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = term.SubjectInYear.Subject;
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            TermService.Delete(term);
+
+            return Ok();
+        }
 
         [HttpGet, Route("{subjectId}")]
         public async Task<IActionResult> Get(int subjectId)
@@ -95,7 +142,7 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            var subjects = await SubjectInYearService.GetDTOAsync(subjectId, ucitelIdno, wscookie);
+            var subjects = await TermService.GetDTOAsync(subjectId, ucitelIdno, wscookie);
 
             return Ok(subjects);
         }
@@ -117,7 +164,7 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            var subject = await SubjectInYearService.GetSingleDTOAsync(subjectInYearId, ucitelIdno, wscookie);
+            var subject = await TermService.GetSingleDTOAsync(subjectInYearId, ucitelIdno, wscookie);
 
             return Ok(subject);
         }

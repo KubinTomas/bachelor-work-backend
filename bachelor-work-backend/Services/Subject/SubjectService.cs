@@ -23,11 +23,11 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
         public Subject? Get(int subjectId)
         {
-            return context.Subjects.SingleOrDefault(c => c.Id == subjectId);
+            return context.Subjects.SingleOrDefault(c => c.Id == subjectId && c.IsActive);
         }
         public void Delete(int subjectId)
         {
-            var subject = context.Subjects.SingleOrDefault(c => c.Id == subjectId);
+            var subject = Get(subjectId);
 
             if (subject != null)
             {
@@ -42,7 +42,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
         public void Update(SubjectDTO subjectDTO)
         {
-            var subject = context.Subjects.SingleOrDefault(c => c.Id == subjectDTO.Id);
+            var subject = Get(subjectDTO.Id);
 
             Update(subjectDTO, subject);
         }
@@ -57,6 +57,9 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
         public void Create(Subject subject)
         {
+            subject.DateIn = DateTime.Now;
+            subject.IsActive = true;
+
             context.Subjects.Add(subject);
             context.SaveChanges();
         }
@@ -66,7 +69,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var subjectsDTO = new List<SubjectDTO>();
 
-            var subjects = context.Subjects.ToList();
+            var subjects = context.Subjects.Where(c => c.IsActive).ToList();
 
             // v DB JE SPOUSTA WHITESPACE PRI VYTVARENI SUBJECTU PROC..
 
@@ -86,11 +89,16 @@ namespace bachelor_work_backend.Services.SubjectFolder
             return subjectsDTO;
         }
 
-        public async Task<SubjectDTO> GetDTOAsync(int subjectId, string ucitelIdno, string wscookie)
+        public async Task<SubjectDTO?> GetDTOAsync(int subjectId, string ucitelIdno, string wscookie)
         {
             var subjectDTO = new SubjectDTO();
 
-            var subject = context.Subjects.SingleOrDefault(c => c.Id == subjectId);
+            var subject = Get(subjectId);
+
+            if(subject == null)
+            {
+                return default;
+            }
 
             var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subject.UcitIdno.Trim(), wscookie);
 

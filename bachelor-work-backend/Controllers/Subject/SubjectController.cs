@@ -71,7 +71,6 @@ namespace bachelor_work_backend.Controllers
 
             var subject = mapper.Map<SubjectDTO, Subject>(subjectDTO);
             subject.UcitIdno = ucitelIdno;
-            subject.DateIn = DateTime.Now;
 
             SubjectService.Create(subject);
 
@@ -99,7 +98,7 @@ namespace bachelor_work_backend.Controllers
 
             if (!hasPermission)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             SubjectService.Delete(subject);
@@ -128,7 +127,7 @@ namespace bachelor_work_backend.Controllers
 
             if (!hasPermission)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             SubjectService.Update(subjectDTO);

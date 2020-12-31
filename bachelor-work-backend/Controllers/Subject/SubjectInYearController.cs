@@ -25,6 +25,7 @@ namespace bachelor_work_backend.Controllers
         private readonly BachContext context;
         public JwtAuthenticationService AuthenticationService { get; private set; }
         public SubjectInYearService SubjectInYearService { get; private set; }
+        public SubjectService SubjectService { get; private set; }
         public StagApiService StagApiService { get; private set; }
         public IConfiguration Configuration { get; private set; }
         public IHttpClientFactory ClientFactory { get; private set; }
@@ -42,6 +43,7 @@ namespace bachelor_work_backend.Controllers
             StagApiService = new StagApiService(configuration, clientFactory);
 
             SubjectInYearService = new SubjectInYearService(context, mapper, StagApiService);
+            SubjectService = new SubjectService(context, mapper, StagApiService);
             AuthenticationService = new JwtAuthenticationService(configuration, StagApiService);
         }
 
@@ -53,29 +55,106 @@ namespace bachelor_work_backend.Controllers
 
             if (string.IsNullOrEmpty(wscookie))
             {
-                return Unauthorized();
+                return Unauthorized("invalidCredentials");
             }
 
             var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
 
             if (string.IsNullOrEmpty(ucitelIdno))
             {
-                return Unauthorized();
+                return Unauthorized("invalidCredentials");
             }
 
             if(SubjectInYearService.DoesYearInSubjectExists(subjectInYearDTO.SubjectId, subjectInYearDTO.Year))
             {
-                return BadRequest("year-for-this-subject-exists");
+                return BadRequest("yearForThisSubjectExists");
             }
 
-            var subject = mapper.Map<SubjectInYearDTO, SubjectInYear>(subjectInYearDTO);
-            subject.UcitIdno = ucitelIdno;
-            subject.DateIn = DateTime.Now;
+            var subject = SubjectService.Get(subjectInYearDTO.SubjectId);
 
-            SubjectInYearService.Create(subject);
+            if(subject == null)
+            {
+                return BadRequest("invalidSubjectId");
+            }
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid("invalidPermission");
+            }
+
+
+            var subjectInYear = mapper.Map<SubjectInYearDTO, SubjectInYear>(subjectInYearDTO);
+            subjectInYear.UcitIdno = ucitelIdno;
+            subjectInYear.DateIn = DateTime.Now;
+
+            SubjectInYearService.Create(subjectInYear);
 
             return Ok();
         }
+
+        [HttpDelete, Route("delete/{subjectId}")]
+        public async Task<IActionResult> Delete(int subjectId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var subjectInYear = SubjectInYearService.Get(subjectId);
+
+            if (subjectInYear == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = subjectInYear.Subject;
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            SubjectInYearService.Delete(subjectInYear);
+
+            return Ok();
+        }
+
+        [HttpPut, Route("update")]
+        public async Task<IActionResult> Update(SubjectInYearDTO subjectInYearDTO)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var subjectInYear = SubjectInYearService.Get(subjectInYearDTO.Id);
+
+            if (subjectInYear == null)
+            {
+                return BadRequest();
+            }
+            var subject = subjectInYear.Subject;
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            SubjectInYearService.Update(subjectInYear, subjectInYearDTO);
+
+            return Ok();
+        }
+
 
 
         [HttpGet, Route("{subjectId}")]

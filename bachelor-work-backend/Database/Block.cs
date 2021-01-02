@@ -26,6 +26,8 @@ namespace bachelor_work_backend.Database
         public string UcitIdno { get; set; }
         [Column("isActive")]
         public bool IsActive { get; set; }
+        [Column("dateIn", TypeName = "datetime")]
+        public DateTime DateIn { get; set; }
 
         [ForeignKey(nameof(SubjectInYearTermId))]
         [InverseProperty("Blocks")]

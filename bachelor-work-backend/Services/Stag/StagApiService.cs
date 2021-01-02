@@ -13,6 +13,8 @@ namespace bachelor_work_backend.Services.Utils
         public IConfiguration Configuration { get; private set; }
         public StagUserApiService StagUserApiService { get; private set; }
         public StagApiKalendarService StagApiKalendarService { get; private set; }
+        public StagPredmetyApiService StagPredmetyApiService { get; private set; }
+        
         public IHttpClientFactory ClientFactory { get; private set; }
 
         public string StagApiUrl { get { return Configuration.GetSection("AppSettings").GetValue<string>("StagApiURL"); } }
@@ -22,6 +24,7 @@ namespace bachelor_work_backend.Services.Utils
             ClientFactory = clientFactory;
             StagUserApiService = new StagUserApiService(StagApiUrl, clientFactory);
             StagApiKalendarService = new StagApiKalendarService(StagApiUrl, clientFactory);
+            StagPredmetyApiService = new StagPredmetyApiService(StagApiUrl, clientFactory);
         }
 
 

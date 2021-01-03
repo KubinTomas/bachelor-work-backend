@@ -14,6 +14,7 @@ namespace bachelor_work_backend.Database
         public SubjectInYearTerm()
         {
             Blocks = new HashSet<Block>();
+            TermStagConnections = new HashSet<TermStagConnection>();
         }
 
         [Key]
@@ -39,5 +40,7 @@ namespace bachelor_work_backend.Database
         public virtual SubjectInYear SubjectInYear { get; set; }
         [InverseProperty(nameof(Block.SubjectInYearTerm))]
         public virtual ICollection<Block> Blocks { get; set; }
+        [InverseProperty(nameof(TermStagConnection.SubjectInYearTerm))]
+        public virtual ICollection<TermStagConnection> TermStagConnections { get; set; }
     }
 }

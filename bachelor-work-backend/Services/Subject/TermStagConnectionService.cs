@@ -22,39 +22,36 @@ namespace bachelor_work_backend.Services.SubjectFolder
             this.StagApiService = StagApiService;
         }
 
-        public void Create(SubjectInYearTerm term)
+        public void Create(TermStagConnection connection)
         {
-            term.IsActive = true;
-            term.DateIn = DateTime.Now;
+            connection.DateIn = DateTime.Now;
 
-            context.SubjectInYearTerms.Add(term);
+            context.TermStagConnections.Add(connection);
             context.SaveChanges();
         }
 
-        public SubjectInYearTerm? Get(int id)
+
+        public bool DoesConnectionExists(TermStagConnectionDTO connectionDTO)
         {
-            return context.SubjectInYearTerms.Include(c => c.SubjectInYear.Subject).SingleOrDefault(c => c.Id == id && c.IsActive);
+            return context.TermStagConnections.Any(c => c.SubjectInYearTermId == connectionDTO.termId &&
+                                                        c.Department == connectionDTO.Department &&
+                                                        c.Term == connectionDTO.Term &&
+                                                        c.ZkrPredm == connectionDTO.ZkrPredm);
+        }
+
+        public TermStagConnection? Get(int id)
+        {
+            return context.TermStagConnections.SingleOrDefault(c => c.Id == id);
         }
 
         public void Delete(int id)
         {
-            var term = Get(id);
+            var connection = Get(id);
 
-            if (term != null)
+            if (connection != null)
             {
-                Delete(term);
+                Delete(connection);
             }
-        }
-
-        public void Update(SubjectInYearTermDTO termDTO)
-        {
-            var term = Get(termDTO.Id);
-
-            if(term != null)
-            {
-                Update(term, termDTO);
-            }
-
         }
 
 
@@ -71,9 +68,9 @@ namespace bachelor_work_backend.Services.SubjectFolder
         }
 
 
-        public void Delete(SubjectInYearTerm term)
+        public void Delete(TermStagConnection connection)
         {
-            term.IsActive = false;
+            context.TermStagConnections.Remove(connection);
             context.SaveChanges();
         }
 
@@ -87,52 +84,42 @@ namespace bachelor_work_backend.Services.SubjectFolder
             return context.SubjectInYearTerms.Where(c => c.SubjectInYearId == subjectInYearId && c.IsActive).Select(c => c.Term).ToList();
         }
 
-        public async Task<List<SubjectInYearTermDTO>> GetDTOAsync(int subjectInYearId, string ucitelIdno, string wscookie)
+        public async Task<List<TermStagConnectionDTO>> GetDTOAsync(int termId, string ucitelIdno, string wscookie)
         {
-            var subjectsDTO = new List<SubjectInYearTermDTO>();
+            var connectionsDTO = new List<TermStagConnectionDTO>();
 
-            var subjects = context.SubjectInYearTerms.Where(c => c.SubjectInYearId == subjectInYearId && c.IsActive).ToList();
+            var connections = context.TermStagConnections.Where(c => c.SubjectInYearTermId == termId).ToList();
 
-            foreach (var subject in subjects)
+            foreach (var connection in connections)
             {
-                var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(subject.UcitIdno.Trim(), wscookie);
-                var subjectDto = mapper.Map<SubjectInYearTerm, SubjectInYearTermDTO>(subject);
+                var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(connection.UcitIdno.Trim(), wscookie);
+                var connectionDTO = mapper.Map<TermStagConnection, TermStagConnectionDTO>(connection);
 
                 if (ucitelInfo != null)
                 {
-                    subjectDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+                    connectionDTO.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
                 }
 
-                subjectsDTO.Add(subjectDto);
+                var stagPredmetInfo = await StagApiService.StagPredmetyApiService.GetPredmetInfo(connection.Department, connection.Year, connection.Term, connection.ZkrPredm, wscookie);
+                var stagPredmetStudents = await StagApiService.StagPredmetyApiService.GetStudentiByPredmet(connection.Department, connection.Year, connection.Term, connection.ZkrPredm, wscookie);
+
+                if (stagPredmetStudents != null)
+                {
+                    connectionDTO.pocetStudentu = stagPredmetStudents.Count;
+                }
+
+                if (stagPredmetInfo != null)
+                {
+                    connectionDTO.predmetNazev = stagPredmetInfo.nazev;
+                }
+
+                connectionsDTO.Add(connectionDTO);
             }
 
-            subjectsDTO = subjectsDTO.OrderByDescending(c => c.Term).ToList();
+            connectionsDTO = connectionsDTO.OrderByDescending(c => c.Term).ToList();
 
-            return subjectsDTO;
+            return connectionsDTO;
         }
-
-        public async Task<SubjectInYearTermDTO?> GetSingleDTOAsync(int termId, string ucitelIdno, string wscookie)
-        {
-            var term = Get(termId);
-
-            if(term == null)
-            {
-                return default;
-            }
-
-            var termDto = mapper.Map<SubjectInYearTerm, SubjectInYearTermDTO>(term);
-            termDto.SubjectId = term.SubjectInYear.SubjectId;
-
-            var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(term.UcitIdno.Trim(), wscookie);
-
-            if (ucitelInfo != null)
-            {
-                termDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
-            }
-
-            return termDto;
-        }
-
 
     }
 }

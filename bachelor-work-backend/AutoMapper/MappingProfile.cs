@@ -30,7 +30,9 @@ namespace bachelor_work_backend.AutoMapper
                       .ForMember(c => c.SubjectInYearName, s => s.MapFrom(c => c.SubjectInYear.Name))
                       .ForMember(c => c.SubjectInYearYear, s => s.MapFrom(c => c.SubjectInYear.Year));
 
-
+            CreateMap<TermStagConnectionDTO, TermStagConnection>()
+                      .ForMember(c => c.SubjectInYearTermId, s => s.MapFrom(c => c.termId));
+            CreateMap<TermStagConnection, TermStagConnectionDTO>();
 
         }
     }

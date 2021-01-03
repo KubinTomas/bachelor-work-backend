@@ -10,6 +10,7 @@ using System.Net.Http.Json;
 using System.Net.Http;
 using bachelor_work_backend.DTO.subject;
 using bachelor_work_backend.Models.Subject;
+using bachelor_work_backend.Models.Student;
 
 namespace bachelor_work_backend.Services.Stag
 {
@@ -23,7 +24,7 @@ namespace bachelor_work_backend.Services.Stag
             ClientFactory = clientFactory;
             this.stagApiUrl = stagApiUrl;
         }
-       
+
         public async Task<List<StagPredmetDTO>?> GetPredmetyByKatedra(string katedra, string rok, string semestr, string wscookie)
         {
             NameValueCollection nvc = new NameValueCollection();
@@ -52,7 +53,61 @@ namespace bachelor_work_backend.Services.Stag
             return default;
         }
 
-      
+        public async Task<StagPredmetInfo?> GetPredmetInfo(string katedra, string rok, string semestr, string zkratka, string wscookie)
+        {
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("outputFormat", "JSON");
+            nvc.Add("katedra", katedra);
+            nvc.Add("rok", rok);
+            nvc.Add("zkratka", zkratka);
+
+            var queryStringParams = UtilsService.ToQueryString(nvc);
+            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/predmety/getPredmetInfo" + queryStringParams);
+            request.Headers.Add("Cookie", "WSCOOKIE=" + wscookie + ";");
+
+            using (var client = ClientFactory.CreateClient())
+            {
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var jsonResponse = JsonConvert.DeserializeObject<StagPredmetInfo>(jsonString);
+
+                    return jsonResponse;
+                }
+            }
+
+            return default;
+        }
+        public async Task<List<StagStudent>?> GetStudentiByPredmet(string katedra, string rok, string semestr, string zkratka, string wscookie)
+        {
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("outputFormat", "JSON");
+            nvc.Add("katedra", katedra);
+            nvc.Add("rok", rok);
+            nvc.Add("semestr", semestr);
+            nvc.Add("zkratka", zkratka);
+
+            var queryStringParams = UtilsService.ToQueryString(nvc);
+            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/student/getStudentiByPredmet" + queryStringParams);
+            request.Headers.Add("Cookie", "WSCOOKIE=" + wscookie + ";");
+
+            using (var client = ClientFactory.CreateClient())
+            {
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var jsonResponse = JsonConvert.DeserializeObject<StagStudentJsonResponse>(jsonString);
+
+                    return jsonResponse.studentPredmetu;
+                }
+            }
+
+            return default;
+        }
     }
 }
 // bud model a do nej davat response + data co to vrati

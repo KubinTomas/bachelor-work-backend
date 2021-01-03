@@ -21,6 +21,7 @@ namespace bachelor_work_backend.Database
         public virtual DbSet<Subject> Subjects { get; set; }
         public virtual DbSet<SubjectInYear> SubjectInYears { get; set; }
         public virtual DbSet<SubjectInYearTerm> SubjectInYearTerms { get; set; }
+        public virtual DbSet<TermStagConnection> TermStagConnections { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -60,6 +61,15 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.SubjectInYearId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_SubjectInYearTerm_SubjectInYear");
+            });
+
+            modelBuilder.Entity<TermStagConnection>(entity =>
+            {
+                entity.HasOne(d => d.SubjectInYearTerm)
+                    .WithMany(p => p.TermStagConnections)
+                    .HasForeignKey(d => d.SubjectInYearTermId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_TermStagConnection_SubjectInYearTerm");
             });
 
             OnModelCreatingPartial(modelBuilder);

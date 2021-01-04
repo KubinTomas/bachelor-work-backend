@@ -108,6 +108,8 @@ namespace bachelor_work_backend.Services.Stag
 
             return default;
         }
+
+      
     }
 }
 // bud model a do nej davat response + data co to vrati

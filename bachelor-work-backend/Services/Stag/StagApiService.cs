@@ -14,6 +14,8 @@ namespace bachelor_work_backend.Services.Utils
         public StagUserApiService StagUserApiService { get; private set; }
         public StagApiKalendarService StagApiKalendarService { get; private set; }
         public StagPredmetyApiService StagPredmetyApiService { get; private set; }
+        public StagRozvrhyApiService StagRozvrhyApiService { get; private set; }
+        public StagStudentApiService StagStudentApiService { get; private set; }
         
         public IHttpClientFactory ClientFactory { get; private set; }
 
@@ -25,6 +27,8 @@ namespace bachelor_work_backend.Services.Utils
             StagUserApiService = new StagUserApiService(StagApiUrl, clientFactory);
             StagApiKalendarService = new StagApiKalendarService(StagApiUrl, clientFactory);
             StagPredmetyApiService = new StagPredmetyApiService(StagApiUrl, clientFactory);
+            StagRozvrhyApiService = new StagRozvrhyApiService(StagApiUrl, clientFactory);
+            StagStudentApiService = new StagStudentApiService(StagApiUrl, clientFactory);
         }
 
 

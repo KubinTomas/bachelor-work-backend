@@ -188,5 +188,32 @@ namespace bachelor_work_backend.Controllers
 
             return Ok(block);
         }
+
+        [HttpGet, Route("whitelist/{blockId}")]
+        public async Task<IActionResult> GetWhitelist(int blockId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var whitelist = await BlockService.GetWhiteListDTO(blockId, ucitelIdno, wscookie);
+
+            if(whitelist == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(whitelist);
+        }
     }
 }

@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.Rozvrh;
+using bachelor_work_backend.DTO.student;
 using bachelor_work_backend.DTO.subject;
+using bachelor_work_backend.Models.Rozvrh;
+using bachelor_work_backend.Models.Student;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +37,12 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<TermStagConnectionDTO, TermStagConnection>()
                       .ForMember(c => c.SubjectInYearTermId, s => s.MapFrom(c => c.termId));
             CreateMap<TermStagConnection, TermStagConnectionDTO>();
+
+            CreateMap<StagStudent, WhitelistStagStudentDTO>();
+
+            CreateMap<StagRozvrhoveAkce, WhitelistRozvrhovaAkceDTO>()
+                      .ForMember(c => c.hodinaSkutOd, s => s.MapFrom(c => c.hodinaSkutOd != null ? c.hodinaSkutOd.value : string.Empty))
+                      .ForMember(c => c.hodinaSkutDo, s => s.MapFrom(c => c.hodinaSkutDo != null ? c.hodinaSkutDo.value : string.Empty));
 
         }
     }

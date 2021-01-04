@@ -1,6 +1,11 @@
 ﻿using AutoMapper;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.Rozvrh;
+using bachelor_work_backend.DTO.student;
 using bachelor_work_backend.DTO.subject;
+using bachelor_work_backend.DTO.Whitelist;
+using bachelor_work_backend.Models.Rozvrh;
+using bachelor_work_backend.Models.Student;
 using bachelor_work_backend.Services.Utils;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -25,7 +30,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var block = Get(blockDTO.Id);
 
-            if(block != null)
+            if (block != null)
             {
                 Update(block, blockDTO);
             }
@@ -46,7 +51,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var block = Get(blockId);
 
-            if(block == null)
+            if (block == null)
             {
                 return default;
             }
@@ -58,8 +63,8 @@ namespace bachelor_work_backend.Services.SubjectFolder
         public void Delete(int blockId)
         {
             var block = context.Blocks.SingleOrDefault(c => c.Id == blockId && c.IsActive);
-            
-            if(block != null)
+
+            if (block != null)
             {
                 Delete(block);
             }
@@ -109,7 +114,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var block = Get(blockId);
 
-            if(block == null)
+            if (block == null)
             {
                 return default;
             }
@@ -125,6 +130,63 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             return blockDto;
 
+        }
+
+        public List<TermStagConnection>? GetTermStagConnectionByBock(int blockId)
+        {
+            var block = Get(blockId);
+
+            if (block == null)
+            {
+                return default;
+            }
+
+            return context.TermStagConnections.Where(c => c.SubjectInYearTermId == block.SubjectInYearTermId).ToList();
+        }
+
+        public async Task<BlockWhitelistDTO?> GetWhiteListDTO(int blockId, string ucitelIdno, string wscookie)
+        {
+            var whitelist = new BlockWhitelistDTO();
+
+            var stagConnections = GetTermStagConnectionByBock(blockId);
+
+            if (stagConnections == null)
+            {
+                return default;
+            }
+
+            foreach (var connection in stagConnections)
+            {
+                var predmet = new BlockWhitelistPredmetDTO(connection);
+                whitelist.Predmety.Add(predmet);
+
+                var rozvrhoveAkce = await StagApiService.StagRozvrhyApiService.GetRozvrhoveAkce(connection.Year, connection.Term, connection.ZkrPredm, wscookie);
+                var predmetStudenti = (await StagApiService.StagPredmetyApiService.GetStudentiByPredmet(connection.Department, connection.Year, connection.Term, connection.ZkrPredm, wscookie));
+
+                predmet.Students = predmetStudenti.Select(c => mapper.Map<StagStudent, WhitelistStagStudentDTO>(c)).ToList();
+
+                if (rozvrhoveAkce != null)
+                {
+                    var rozvrhoveAkceByKatedra = rozvrhoveAkce.Where(c => c.katedra == connection.Department);
+
+                    foreach (var akce in rozvrhoveAkceByKatedra)
+                    {
+                        var akceStudenti = await StagApiService.StagStudentApiService.GetStudentiByRoakce(akce.roakIdno, wscookie);
+
+                        if (akceStudenti != null)
+                        {
+                            var rozvrhovaAkce = new BlockWhitelistPredmetRozvrhoveAkceDTO();
+                            rozvrhovaAkce.RozvrhovaAkce = mapper.Map<StagRozvrhoveAkce, WhitelistRozvrhovaAkceDTO>(akce);
+                            rozvrhovaAkce.Students = akceStudenti.Select(c => mapper.Map<StagStudent, WhitelistStagStudentDTO>(c)).ToList();
+
+                            predmet.RozvrhoveAkce.Add(rozvrhovaAkce);
+                        }
+                    }
+                }
+
+            }
+
+            return whitelist;
         }
     }
 }

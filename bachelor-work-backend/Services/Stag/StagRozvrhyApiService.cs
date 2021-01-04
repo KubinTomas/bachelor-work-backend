@@ -11,28 +11,31 @@ using System.Net.Http;
 using bachelor_work_backend.DTO.subject;
 using bachelor_work_backend.Models.Subject;
 using bachelor_work_backend.Models.Student;
+using bachelor_work_backend.Models.Rozvrh;
 
 namespace bachelor_work_backend.Services.Stag
 {
-    public class StagStudentApiService
+    public class StagRozvrhyApiService
     {
         public IHttpClientFactory ClientFactory { get; private set; }
 
         private readonly string stagApiUrl;
-        public StagStudentApiService(string stagApiUrl, IHttpClientFactory clientFactory)
+        public StagRozvrhyApiService(string stagApiUrl, IHttpClientFactory clientFactory)
         {
             ClientFactory = clientFactory;
             this.stagApiUrl = stagApiUrl;
         }
 
-        public async Task<List<StagStudent>?> GetStudentiByRoakce(int roakIdno, string wscookie)
+        public async Task<List<StagRozvrhoveAkce>?> GetRozvrhoveAkce(string rok, string semestr, string zkrPredm, string wscookie)
         {
             NameValueCollection nvc = new NameValueCollection();
             nvc.Add("outputFormat", "JSON");
-            nvc.Add("roakIdno", roakIdno.ToString());
+            nvc.Add("rokVarianty", rok);
+            nvc.Add("semestr", semestr);
+            nvc.Add("zkrPredm", zkrPredm);
 
             var queryStringParams = UtilsService.ToQueryString(nvc);
-            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/student/getStudentiByRoakce" + queryStringParams);
+            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/rozvrhy/getRozvrhoveAkce" + queryStringParams);
             request.Headers.Add("Cookie", "WSCOOKIE=" + wscookie + ";");
 
             using (var client = ClientFactory.CreateClient())
@@ -42,14 +45,13 @@ namespace bachelor_work_backend.Services.Stag
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
-                    var jsonResponse = JsonConvert.DeserializeObject<StagStudentJsonResponse>(jsonString);
+                    var jsonResponse = JsonConvert.DeserializeObject<StagRozvrhoveAkceJsonResponse>(jsonString);
 
-                    return jsonResponse.studentPredmetu;
+                    return jsonResponse.rozvrhovaAkce;
                 }
             }
 
             return default;
         }
-
     }
 }

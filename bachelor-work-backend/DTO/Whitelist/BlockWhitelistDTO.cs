@@ -1,4 +1,5 @@
-﻿using bachelor_work_backend.DTO.Whitelist;
+﻿using bachelor_work_backend.DTO.student;
+using bachelor_work_backend.DTO.Whitelist;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace bachelor_work_backend.DTO.subject
     public class BlockWhitelistDTO
     {
         public List<BlockWhitelistPredmetDTO> Predmety{ get; set; }
-        public List<string> SelectedStudentsOsCislo { get; set; }
+        public List<WhitelistStagStudentDTO> SelectedStudents { get; set; }
 
         public BlockWhitelistDTO()
         {
             Predmety = new List<BlockWhitelistPredmetDTO>();
-            SelectedStudentsOsCislo = new List<string>();
+            SelectedStudents = new List<WhitelistStagStudentDTO>();
         }
     }
 }

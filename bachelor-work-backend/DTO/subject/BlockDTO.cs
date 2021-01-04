@@ -13,5 +13,6 @@ namespace bachelor_work_backend.DTO.subject
         public string Name { get; set; }
         public DateTime DateIn { get; set; }
         public string? UcitelName { get; set; }
+        public int WhitelistUserCount { get; set; }
     }
 }

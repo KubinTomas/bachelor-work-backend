@@ -92,7 +92,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var blocksDTO = new List<BlockDTO>();
 
-            var blocks = context.Blocks.Where(c => c.SubjectInYearTermId == termId && c.IsActive).ToList();
+            var blocks = context.Blocks.Include(c => c.BlockStagUserWhitelists).Where(c => c.SubjectInYearTermId == termId && c.IsActive).ToList();
 
             foreach (var block in blocks)
             {
@@ -144,9 +144,29 @@ namespace bachelor_work_backend.Services.SubjectFolder
             return context.TermStagConnections.Where(c => c.SubjectInYearTermId == block.SubjectInYearTermId).ToList();
         }
 
+        public async Task<List<WhitelistStagStudentDTO>> GetWhitelistStudents(int blockId, string wscookie)
+        {
+            var whitelist = GetWhitelist(blockId);
+
+            var students = new List <WhitelistStagStudentDTO>();
+
+            foreach (var whitelistEntry in whitelist)
+            {
+                var student = await StagApiService.StagStudentApiService.GetStudentInfo(whitelistEntry.StudentOsCislo, wscookie);
+
+                if(student != null)
+                {
+                    students.Add(mapper.Map<StagStudent, WhitelistStagStudentDTO>(student));
+                }
+            }
+
+            return students;
+        }
+
         public async Task<BlockWhitelistDTO?> GetWhiteListDTO(int blockId, string ucitelIdno, string wscookie)
         {
             var whitelist = new BlockWhitelistDTO();
+            whitelist.SelectedStudents = await GetWhitelistStudents(blockId, wscookie);
 
             var stagConnections = GetTermStagConnectionByBock(blockId);
 
@@ -187,6 +207,29 @@ namespace bachelor_work_backend.Services.SubjectFolder
             }
 
             return whitelist;
+        }
+
+        public List<BlockStagUserWhitelist> GetWhitelist(int blockId)
+        {
+            return context.BlockStagUserWhitelists.Where(c => c.BlockId == blockId).ToList();
+        }
+
+        public void SaveWhitelist(BlockWhitelistSaveDTO whitelistDTO)
+        {
+            DeleteWhitelist(whitelistDTO.blockId);
+
+            var whitelistData = whitelistDTO.studentsOsCislo.Select(c => new BlockStagUserWhitelist() { StudentOsCislo = c, BlockId = whitelistDTO.blockId }).ToList();
+
+            context.BlockStagUserWhitelists.AddRange(whitelistData);
+            context.SaveChanges();
+        }
+
+        public void DeleteWhitelist(int blockId)
+        {
+            var whitelist = GetWhitelist(blockId);
+
+            context.BlockStagUserWhitelists.RemoveRange(whitelist);
+            context.SaveChanges();
         }
     }
 }

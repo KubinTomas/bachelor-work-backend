@@ -11,6 +11,11 @@ namespace bachelor_work_backend.Database
     [Table("Block")]
     public partial class Block
     {
+        public Block()
+        {
+            BlockStagUserWhitelists = new HashSet<BlockStagUserWhitelist>();
+        }
+
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -32,5 +37,7 @@ namespace bachelor_work_backend.Database
         [ForeignKey(nameof(SubjectInYearTermId))]
         [InverseProperty("Blocks")]
         public virtual SubjectInYearTerm SubjectInYearTerm { get; set; }
+        [InverseProperty(nameof(BlockStagUserWhitelist.Block))]
+        public virtual ICollection<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
     }
 }

@@ -24,7 +24,9 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<SubjectInYear, SubjectInYearDTO>();
 
             CreateMap<Block, BlockDTO>()
-                 .ForMember(c => c.TermId, s => s.MapFrom(c => c.SubjectInYearTermId));
+                 .ForMember(c => c.TermId, s => s.MapFrom(c => c.SubjectInYearTermId))
+                 .ForMember(c => c.WhitelistUserCount, s => s.MapFrom(c => c.BlockStagUserWhitelists.Count));
+            
 
             CreateMap<BlockDTO, Block>()
                  .ForMember(c => c.SubjectInYearTermId, s => s.MapFrom(c => c.TermId    ));

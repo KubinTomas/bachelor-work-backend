@@ -18,6 +18,7 @@ namespace bachelor_work_backend.Database
         }
 
         public virtual DbSet<Block> Blocks { get; set; }
+        public virtual DbSet<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
         public virtual DbSet<Subject> Subjects { get; set; }
         public virtual DbSet<SubjectInYear> SubjectInYears { get; set; }
         public virtual DbSet<SubjectInYearTerm> SubjectInYearTerms { get; set; }
@@ -43,6 +44,15 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.SubjectInYearTermId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Block_SubjectInYearTerm");
+            });
+
+            modelBuilder.Entity<BlockStagUserWhitelist>(entity =>
+            {
+                entity.HasOne(d => d.Block)
+                    .WithMany(p => p.BlockStagUserWhitelists)
+                    .HasForeignKey(d => d.BlockId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BlockStagUserWhitelist_Block");
             });
 
             modelBuilder.Entity<SubjectInYear>(entity =>

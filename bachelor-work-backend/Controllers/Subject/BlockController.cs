@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using bachelor_work_backend.Database;
 using bachelor_work_backend.DTO.subject;
+using bachelor_work_backend.DTO.Whitelist;
 using bachelor_work_backend.Services;
 using bachelor_work_backend.Services.SubjectFolder;
 using bachelor_work_backend.Services.Utils;
@@ -215,5 +216,39 @@ namespace bachelor_work_backend.Controllers
 
             return Ok(whitelist);
         }
+
+        [HttpPost, Route("whitelist/save")]
+        public async Task<IActionResult> SaveWhitelist(BlockWhitelistSaveDTO whitelistDTO)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var block = BlockService.Get(whitelistDTO.blockId);
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+      
+
+            BlockService.SaveWhitelist(whitelistDTO);
+
+            return Ok();
+        }
+
     }
 }

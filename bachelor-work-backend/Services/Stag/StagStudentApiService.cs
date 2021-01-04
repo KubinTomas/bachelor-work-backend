@@ -25,6 +25,31 @@ namespace bachelor_work_backend.Services.Stag
             this.stagApiUrl = stagApiUrl;
         }
 
+        public async Task<StagStudent?> GetStudentInfo(string osCislo, string wscookie)
+        {
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("outputFormat", "JSON");
+            nvc.Add("osCislo", osCislo);
+
+            var queryStringParams = UtilsService.ToQueryString(nvc);
+            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/student/getStudentInfo" + queryStringParams);
+            request.Headers.Add("Cookie", "WSCOOKIE=" + wscookie + ";");
+
+            using (var client = ClientFactory.CreateClient())
+            {
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var jsonResponse = JsonConvert.DeserializeObject<StagStudent>(jsonString);
+
+                    return jsonResponse;
+                }
+            }
+
+            return default;
+        }
         public async Task<List<StagStudent>?> GetStudentiByRoakce(int roakIdno, string wscookie)
         {
             NameValueCollection nvc = new NameValueCollection();

@@ -41,6 +41,7 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<StagStudent, WhitelistStagStudentDTO>();
 
             CreateMap<StagRozvrhoveAkce, WhitelistRozvrhovaAkceDTO>()
+                      .ForMember(c => c.katedraPredmet, s => s.MapFrom(c => c.katedra + "/" + c.predmet))
                       .ForMember(c => c.hodinaSkutOd, s => s.MapFrom(c => c.hodinaSkutOd != null ? c.hodinaSkutOd.value : string.Empty))
                       .ForMember(c => c.hodinaSkutDo, s => s.MapFrom(c => c.hodinaSkutDo != null ? c.hodinaSkutDo.value : string.Empty));
 

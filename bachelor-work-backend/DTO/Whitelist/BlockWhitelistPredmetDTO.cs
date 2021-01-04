@@ -9,6 +9,7 @@ namespace bachelor_work_backend.DTO.Whitelist
 {
     public class BlockWhitelistPredmetDTO
     {
+        public string Label { get; set; }
         public string ZkrPredm { get; set; }
         public string Year { get; set; }
         public string Department { get; set; }
@@ -29,6 +30,8 @@ namespace bachelor_work_backend.DTO.Whitelist
             Year = connection.Year;
             Department = connection.Department;
             Term = connection.Term;
+
+            Label = connection.Department + '/' + connection.ZkrPredm + " - " + Year + " " + (Term == string.Empty ? "LS a ZS" : Term);
         }
 
     }

@@ -7,6 +7,10 @@ namespace bachelor_work_backend.DTO.Rozvrh
 {
     public class WhitelistRozvrhovaAkceDTO
     {
+        public string katedraPredmet { get; set; }
+        public string katedra { get; set; }
+        public string predmet { get; set; }
+        public string roakIdno { get; set; }
         public string typAkce { get; set; }
         public string semestr { get; set; }
         public string rok { get; set; }

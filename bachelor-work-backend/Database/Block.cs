@@ -37,6 +37,8 @@ namespace bachelor_work_backend.Database
         [ForeignKey(nameof(SubjectInYearTermId))]
         [InverseProperty("Blocks")]
         public virtual SubjectInYearTerm SubjectInYearTerm { get; set; }
+        [InverseProperty("Block")]
+        public virtual BlockRestriction BlockRestriction { get; set; }
         [InverseProperty(nameof(BlockStagUserWhitelist.Block))]
         public virtual ICollection<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
     }

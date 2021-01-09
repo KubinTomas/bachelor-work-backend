@@ -123,6 +123,7 @@ namespace bachelor_work_backend.Controllers
                 return BadRequest();
             }
 
+
             var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
 
             if (!hasPermission)

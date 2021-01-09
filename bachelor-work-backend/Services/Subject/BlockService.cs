@@ -39,12 +39,17 @@ namespace bachelor_work_backend.Services.SubjectFolder
         public void Update(Block block, BlockDTO blockDTO)
         {
             block.Name = blockDTO.Name;
+
+            block.BlockRestriction.ActionAttendLimit = blockDTO.BlockRestriction.actionAttendLimit;
+            block.BlockRestriction.AllowExternalUsers = blockDTO.BlockRestriction.allowExternalUsers;
+            block.BlockRestriction.AllowOnlyStudentsOnWhiteList = blockDTO.BlockRestriction.allowOnlyStudentsOnWhiteList;
+
             context.SaveChanges();
         }
 
         public Block? Get(int blockId)
         {
-            return context.Blocks.Include(c => c.SubjectInYearTerm.SubjectInYear.Subject).SingleOrDefault(c => c.Id == blockId && c.IsActive);
+            return context.Blocks.Include(c => c.SubjectInYearTerm.SubjectInYear.Subject).Include(c => c.BlockRestriction).SingleOrDefault(c => c.Id == blockId && c.IsActive);
         }
 
         public SubjectInYearTerm? GetTerm(int blockId)
@@ -92,7 +97,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var blocksDTO = new List<BlockDTO>();
 
-            var blocks = context.Blocks.Include(c => c.BlockStagUserWhitelists).Where(c => c.SubjectInYearTermId == termId && c.IsActive).ToList();
+            var blocks = context.Blocks.Include(c => c.BlockStagUserWhitelists).Include(c => c.BlockRestriction).Where(c => c.SubjectInYearTermId == termId && c.IsActive).ToList();
 
             foreach (var block in blocks)
             {

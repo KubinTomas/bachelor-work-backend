@@ -18,6 +18,7 @@ namespace bachelor_work_backend.Database
         }
 
         public virtual DbSet<Block> Blocks { get; set; }
+        public virtual DbSet<BlockAction> BlockActions { get; set; }
         public virtual DbSet<BlockRestriction> BlockRestrictions { get; set; }
         public virtual DbSet<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
         public virtual DbSet<Subject> Subjects { get; set; }
@@ -45,6 +46,15 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.SubjectInYearTermId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Block_SubjectInYearTerm");
+            });
+
+            modelBuilder.Entity<BlockAction>(entity =>
+            {
+                entity.HasOne(d => d.Block)
+                    .WithMany(p => p.BlockActions)
+                    .HasForeignKey(d => d.BlockId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BlockAction_Block");
             });
 
             modelBuilder.Entity<BlockRestriction>(entity =>

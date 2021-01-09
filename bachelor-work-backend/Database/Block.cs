@@ -13,6 +13,7 @@ namespace bachelor_work_backend.Database
     {
         public Block()
         {
+            BlockActions = new HashSet<BlockAction>();
             BlockStagUserWhitelists = new HashSet<BlockStagUserWhitelist>();
         }
 
@@ -39,6 +40,8 @@ namespace bachelor_work_backend.Database
         public virtual SubjectInYearTerm SubjectInYearTerm { get; set; }
         [InverseProperty("Block")]
         public virtual BlockRestriction BlockRestriction { get; set; }
+        [InverseProperty(nameof(BlockAction.Block))]
+        public virtual ICollection<BlockAction> BlockActions { get; set; }
         [InverseProperty(nameof(BlockStagUserWhitelist.Block))]
         public virtual ICollection<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
     }

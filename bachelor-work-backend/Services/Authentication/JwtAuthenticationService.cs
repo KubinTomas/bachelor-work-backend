@@ -94,7 +94,7 @@ namespace bachelor_work_backend.Services
 
             var hasPermission = stagUser.stagUserInfo.Any(c => c.Fakulta == subject.Fakulta && 
                                                                c.Katedra == subject.Katedra && 
-                                                               c.Role == Constants.StagRole.Vyucujici);
+                                                               ( Constants.StagRole.AdminRoles.Contains(c.Role)));
 
             return hasPermission;
         }

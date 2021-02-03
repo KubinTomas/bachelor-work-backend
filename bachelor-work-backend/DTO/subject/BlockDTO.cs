@@ -15,5 +15,6 @@ namespace bachelor_work_backend.DTO.subject
         public string? UcitelName { get; set; }
         public int WhitelistUserCount { get; set; }
         public BlockRestrictionDTO BlockRestriction { get; set; }
+        public SubjectInYearTermDTO Term { get; set; }
     }
 }

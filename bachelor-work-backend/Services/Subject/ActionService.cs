@@ -75,27 +75,27 @@ namespace bachelor_work_backend.Services.SubjectFolder
         }
 
 
-        //public async Task<List<BlockDTO>> GetDTOAsync(int termId, string ucitelIdno, string wscookie)
-        //{
-        //    var blocksDTO = new List<BlockDTO>();
+        public async Task<List<BlockActionDTO>> GetDTOAsync(int blockId, string ucitelIdno, string wscookie)
+        {
+            var actionsDTO = new List<BlockActionDTO>();
 
-        //    var blocks = context.Blocks.Include(c => c.BlockStagUserWhitelists).Include(c => c.BlockRestriction).Where(c => c.SubjectInYearTermId == termId && c.IsActive).ToList();
+            var actions = context.BlockActions.Where(c => c.BlockId == blockId && c.IsActive).ToList();
 
-        //    foreach (var block in blocks)
-        //    {
-        //        var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(block.UcitIdno.Trim(), wscookie);
-        //        var blockDto = mapper.Map<Block, BlockDTO>(block);
+            foreach (var action in actions)
+            {
+                var ucitelInfo = await StagApiService.StagUserApiService.GetUcitelInfoAsync(action.UcitIdno.Trim(), wscookie);
+                var actionDTO = mapper.Map<BlockAction, BlockActionDTO>(action);
 
-        //        if (ucitelInfo != null)
-        //        {
-        //            blockDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
-        //        }
+                if (ucitelInfo != null)
+                {
+                    actionDTO.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
+                }
 
-        //        blocksDTO.Add(blockDto);
-        //    }
+                actionsDTO.Add(actionDTO);
+            }
 
-        //    return blocksDTO;
-        //}
+            return actionsDTO;
+        }
 
         //public async Task<BlockDTO> GetSingleDTOAsync(int blockId, string ucitelIdno, string wscookie)
         //{

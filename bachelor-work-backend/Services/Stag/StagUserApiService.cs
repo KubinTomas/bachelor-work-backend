@@ -36,7 +36,7 @@ namespace bachelor_work_backend.Services.Stag
         {
             var stagUserInfoList = await GetStagUserListForLoginTicketAsync(wscookie);
 
-            if(stagUserInfoList == null)
+            if (stagUserInfoList == null)
             {
                 return null;
             }
@@ -60,6 +60,15 @@ namespace bachelor_work_backend.Services.Stag
                 var ucitelInfo = await GetUcitelInfoAsync(user.activeStagUserInfo.UcitIdno, wscookie);
                 user.Email = ucitelInfo.Email;
                 user.Name = ucitelInfo.TitulPred + " " + ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni + ", " + ucitelInfo.TitulZa;
+
+                var externalLogin = await GetExternalLoginByUcitIdno(user.activeStagUserInfo.UcitIdno, wscookie);
+
+                var stagUserInfoByExternalLogin = await GetStagUserListForExternalLogin(externalLogin, wscookie);
+
+                if (stagUserInfoByExternalLogin != null)
+                {
+                    user.stagUserInfo = stagUserInfoByExternalLogin;
+                }
             }
             else if (!string.IsNullOrEmpty(user.activeStagUserInfo.UserName))
             {
@@ -69,6 +78,57 @@ namespace bachelor_work_backend.Services.Stag
             }
 
             return user;
+        }
+
+        public async Task<List<StagUserInfo>?> GetStagUserListForExternalLogin(string externalLogin, string ticket)
+        {
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("outputFormat", "JSON");
+            nvc.Add("externalLogin", externalLogin);
+
+            var queryStringParams = UtilsService.ToQueryString(nvc);
+            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/users/getStagUserListForExternalLogin" + queryStringParams);
+            request.Headers.Add("Cookie", "WSCOOKIE=" + ticket + ";");
+
+            using (var client = ClientFactory.CreateClient())
+            {
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var stagUserInfoJsonResponse = JsonConvert.DeserializeObject<StagUserInfoJsonResponse>(jsonString);
+
+                    return stagUserInfoJsonResponse.stagUserInfo;
+                }
+            }
+
+            return default;
+        }
+
+        public async Task<string> GetExternalLoginByUcitIdno(string ucitIdno, string wscookie)
+        {
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("ucitIdno", ucitIdno);
+
+            var queryStringParams = UtilsService.ToQueryString(nvc);
+            var request = new HttpRequestMessage(HttpMethod.Get, stagApiUrl + "/ws/services/rest2/users/getExternalLoginByUcitIdno" + queryStringParams);
+            request.Headers.Add("Cookie", "WSCOOKIE=" + wscookie + ";");
+
+            using (var client = ClientFactory.CreateClient())
+            {
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    //var stagStudentInfo = JsonConvert.DeserializeObject<StagStudentInfo>(jsonString);
+
+                    return jsonString;
+                }
+            }
+
+            return default;
         }
 
         public async Task<StagStudentInfo> GetStudentInfo(string osCislo, string wscookie)

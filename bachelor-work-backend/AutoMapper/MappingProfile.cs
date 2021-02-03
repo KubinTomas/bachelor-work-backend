@@ -26,6 +26,7 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<Block, BlockDTO>()
                  .ForMember(c => c.TermId, s => s.MapFrom(c => c.SubjectInYearTermId))
                  .ForMember(c => c.BlockRestriction, s => s.MapFrom(c => c.BlockRestriction))
+                 .ForMember(c => c.Term, s => s.MapFrom(c => c.SubjectInYearTerm))
                  .ForMember(c => c.WhitelistUserCount, s => s.MapFrom(c => c.BlockStagUserWhitelists.Count));
 
             CreateMap<BlockRestriction, BlockRestrictionDTO>();
@@ -37,6 +38,7 @@ namespace bachelor_work_backend.AutoMapper
 
             CreateMap<SubjectInYearTermDTO, SubjectInYearTerm>();
             CreateMap<SubjectInYearTerm, SubjectInYearTermDTO>()
+                      .ForMember(c => c.SubjectId, s => s.MapFrom(c => c.SubjectInYear != null ? c.SubjectInYear.SubjectId : 0))
                       .ForMember(c => c.SubjectInYearName, s => s.MapFrom(c => c.SubjectInYear.Name))
                       .ForMember(c => c.SubjectInYearYear, s => s.MapFrom(c => c.SubjectInYear.Year));
 
@@ -51,6 +53,8 @@ namespace bachelor_work_backend.AutoMapper
                       .ForMember(c => c.hodinaSkutOd, s => s.MapFrom(c => c.hodinaSkutOd != null ? c.hodinaSkutOd.value : string.Empty))
                       .ForMember(c => c.hodinaSkutDo, s => s.MapFrom(c => c.hodinaSkutDo != null ? c.hodinaSkutDo.value : string.Empty));
 
+            CreateMap<BlockActionDTO, BlockAction>();
+            CreateMap<BlockAction, BlockActionDTO>();
         }
     }
 }

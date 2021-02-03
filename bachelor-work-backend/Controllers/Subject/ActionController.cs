@@ -162,27 +162,27 @@ namespace bachelor_work_backend.Controllers
         }
 
 
-        //[HttpGet, Route("{termId}")]
-        //public async Task<IActionResult> Get(int termId)
-        //{
-        //    var wscookie = Request.Cookies["WSCOOKIE"];
+        [HttpGet, Route("{blockId}")]
+        public async Task<IActionResult> Get(int blockId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
 
-        //    if (string.IsNullOrEmpty(wscookie))
-        //    {
-        //        return Unauthorized();
-        //    }
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
 
-        //    var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
 
-        //    if (string.IsNullOrEmpty(ucitelIdno))
-        //    {
-        //        return Unauthorized();
-        //    }
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
 
-        //    var blocks = await ActionService.GetDTOAsync(termId, ucitelIdno, wscookie);
+            var actions = await ActionService.GetDTOAsync(blockId, ucitelIdno, wscookie);
 
-        //    return Ok(blocks);
-        //}
+            return Ok(actions);
+        }
 
         //[HttpGet, Route("detail/{blockId}")]
         //public async Task<IActionResult> GetDetail(int blockId)

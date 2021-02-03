@@ -48,6 +48,9 @@ namespace bachelor_work_backend.Database
         public string UcitIdno { get; set; }
         [Column("dateIn", TypeName = "datetime")]
         public DateTime DateIn { get; set; }
+        [Column("description")]
+        [StringLength(1000)]
+        public string Description { get; set; }
 
         [ForeignKey(nameof(BlockId))]
         [InverseProperty("BlockActions")]

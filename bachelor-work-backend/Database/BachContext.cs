@@ -19,6 +19,8 @@ namespace bachelor_work_backend.Database
 
         public virtual DbSet<Block> Blocks { get; set; }
         public virtual DbSet<BlockAction> BlockActions { get; set; }
+        public virtual DbSet<BlockActionAttendance> BlockActionAttendances { get; set; }
+        public virtual DbSet<BlockActionPeopleEnrollQueue> BlockActionPeopleEnrollQueues { get; set; }
         public virtual DbSet<BlockActionRestriction> BlockActionRestrictions { get; set; }
         public virtual DbSet<BlockRestriction> BlockRestrictions { get; set; }
         public virtual DbSet<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
@@ -56,6 +58,24 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.BlockId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BlockAction_Block");
+            });
+
+            modelBuilder.Entity<BlockActionAttendance>(entity =>
+            {
+                entity.HasOne(d => d.Action)
+                    .WithMany(p => p.BlockActionAttendances)
+                    .HasForeignKey(d => d.ActionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BlockActionAttendance_BlockAction");
+            });
+
+            modelBuilder.Entity<BlockActionPeopleEnrollQueue>(entity =>
+            {
+                entity.HasOne(d => d.Action)
+                    .WithMany(p => p.BlockActionPeopleEnrollQueues)
+                    .HasForeignKey(d => d.ActionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BlockActionPeopleEnrollQueue_BlockAction");
             });
 
             modelBuilder.Entity<BlockActionRestriction>(entity =>

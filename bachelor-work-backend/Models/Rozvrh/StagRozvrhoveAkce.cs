@@ -27,8 +27,8 @@ namespace bachelor_work_backend.Models.Rozvrh
         public string den { get; set; }
         public string denZkr { get; set; }
         public object vyucJazyk { get; set; }
-        public int hodinaOd { get; set; }
-        public int hodinaDo { get; set; }
+        public int? hodinaOd { get; set; }
+        public int? hodinaDo { get; set; }
         public int? pocetVyucHodin { get; set; }
         public Hodinaskutod? hodinaSkutOd { get; set; }
         public Hodinaskutdo? hodinaSkutDo { get; set; }

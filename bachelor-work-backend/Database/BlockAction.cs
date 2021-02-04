@@ -11,6 +11,12 @@ namespace bachelor_work_backend.Database
     [Table("BlockAction")]
     public partial class BlockAction
     {
+        public BlockAction()
+        {
+            BlockActionAttendances = new HashSet<BlockActionAttendance>();
+            BlockActionPeopleEnrollQueues = new HashSet<BlockActionPeopleEnrollQueue>();
+        }
+
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -57,5 +63,9 @@ namespace bachelor_work_backend.Database
         public virtual Block Block { get; set; }
         [InverseProperty("Action")]
         public virtual BlockActionRestriction BlockActionRestriction { get; set; }
+        [InverseProperty(nameof(BlockActionAttendance.Action))]
+        public virtual ICollection<BlockActionAttendance> BlockActionAttendances { get; set; }
+        [InverseProperty(nameof(BlockActionPeopleEnrollQueue.Action))]
+        public virtual ICollection<BlockActionPeopleEnrollQueue> BlockActionPeopleEnrollQueues { get; set; }
     }
 }

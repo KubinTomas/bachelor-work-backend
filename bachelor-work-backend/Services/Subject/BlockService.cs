@@ -204,7 +204,10 @@ namespace bachelor_work_backend.Services.SubjectFolder
                             rozvrhovaAkce.RozvrhovaAkce = mapper.Map<StagRozvrhoveAkce, WhitelistRozvrhovaAkceDTO>(akce);
                             rozvrhovaAkce.Students = akceStudenti.Select(c => mapper.Map<StagStudent, WhitelistStagStudentDTO>(c)).ToList();
 
-                            predmet.RozvrhoveAkce.Add(rozvrhovaAkce);
+                            if(rozvrhovaAkce.Students.Count != 0)
+                            {
+                                predmet.RozvrhoveAkce.Add(rozvrhovaAkce);
+                            }
                         }
                     }
                 }

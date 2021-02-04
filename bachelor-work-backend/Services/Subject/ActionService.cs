@@ -79,7 +79,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var actionsDTO = new List<BlockActionDTO>();
 
-            var actions = context.BlockActions.Where(c => c.BlockId == blockId && c.IsActive).ToList();
+            var actions = context.BlockActions.Include(c => c.BlockActionRestriction).Where(c => c.BlockId == blockId && c.IsActive).ToList();
 
             foreach (var action in actions)
             {

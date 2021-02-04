@@ -23,5 +23,7 @@ namespace bachelor_work_backend.DTO.subject
         public bool IsActive { get; set; }
         public int GroupId { get; set; }
         public string? UcitelName { get; set; }
+        public int StudentCount { get; set; }
+        public BlockActionRestrictionDTO BlockActionRestriction { get; set; }
     }
 }

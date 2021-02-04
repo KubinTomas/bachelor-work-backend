@@ -55,5 +55,7 @@ namespace bachelor_work_backend.Database
         [ForeignKey(nameof(BlockId))]
         [InverseProperty("BlockActions")]
         public virtual Block Block { get; set; }
+        [InverseProperty("Action")]
+        public virtual BlockActionRestriction BlockActionRestriction { get; set; }
     }
 }

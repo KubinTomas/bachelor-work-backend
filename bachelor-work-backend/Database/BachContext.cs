@@ -19,6 +19,7 @@ namespace bachelor_work_backend.Database
 
         public virtual DbSet<Block> Blocks { get; set; }
         public virtual DbSet<BlockAction> BlockActions { get; set; }
+        public virtual DbSet<BlockActionRestriction> BlockActionRestrictions { get; set; }
         public virtual DbSet<BlockRestriction> BlockRestrictions { get; set; }
         public virtual DbSet<BlockStagUserWhitelist> BlockStagUserWhitelists { get; set; }
         public virtual DbSet<Subject> Subjects { get; set; }
@@ -55,6 +56,17 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.BlockId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BlockAction_Block");
+            });
+
+            modelBuilder.Entity<BlockActionRestriction>(entity =>
+            {
+                entity.Property(e => e.ActionId).ValueGeneratedNever();
+
+                entity.HasOne(d => d.Action)
+                    .WithOne(p => p.BlockActionRestriction)
+                    .HasForeignKey<BlockActionRestriction>(d => d.ActionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BlockActionRestriction_BlockAction");
             });
 
             modelBuilder.Entity<BlockRestriction>(entity =>

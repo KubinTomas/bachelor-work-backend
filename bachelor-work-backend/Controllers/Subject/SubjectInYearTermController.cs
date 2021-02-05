@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using bachelor_work_backend.Database;
 using bachelor_work_backend.DTO.subject;
+using bachelor_work_backend.Filters.Permission;
 using bachelor_work_backend.Services;
 using bachelor_work_backend.Services.SubjectFolder;
 using bachelor_work_backend.Services.Utils;
@@ -19,6 +20,7 @@ namespace bachelor_work_backend.Controllers
     [Route("teacher/[controller]")]
     [ApiController]
     [Authorize]
+    [Administrator]
     public class SubjectInYearTermController : ControllerBase
     {
         private readonly IMapper mapper;

@@ -16,11 +16,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using bachelor_work_backend.Filters.Permission;
 
 namespace bachelor_work_backend.Controllers.Student
 {
+    //[TypeFilter(typeof(AdministratorAttribute))]
+
     [Route("[controller]")]
     [ApiController]
+    [Student]
     public class StudentActionController : ControllerBase
     {
         private readonly IMapper mapper;

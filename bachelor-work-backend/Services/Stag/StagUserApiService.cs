@@ -67,7 +67,7 @@ namespace bachelor_work_backend.Services.Stag
 
                 if (stagUserInfoByExternalLogin != null)
                 {
-                    user.stagUserInfo = stagUserInfoByExternalLogin;
+                    user.stagUserInfo = stagUserInfoByExternalLogin.Where(c => c.Aktivni == Constants.Stag.Aktivni).ToList();
                 }
             }
             else if (!string.IsNullOrEmpty(user.activeStagUserInfo.UserName))

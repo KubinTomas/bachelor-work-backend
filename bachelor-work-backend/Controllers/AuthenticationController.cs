@@ -55,10 +55,38 @@ namespace bachelor_work_backend.Controllers
 
             var claims = new List<Claim>
                 {
-                    new Claim(CustomClaims.StagToken, "true"),
                     new Claim(CustomClaims.UserId, "0"),
-                    new Claim(CustomClaims.UserName, string.Empty),
                 };
+
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (!string.IsNullOrEmpty(wscookie))
+            {
+                // stag user claims
+
+                var isWscookieValid = await AuthenticationService.IsStagUserCookieValidAsync(wscookie);
+
+                if (!isWscookieValid)
+                {
+                    return Unauthorized();
+                }
+
+                var stagUser = await AuthenticationService.GetStagUserAsync(wscookie);
+
+                claims.Add(new Claim(CustomClaims.UserName, stagUser.activeStagUserInfo.UserName));
+                claims.Add(new Claim(CustomClaims.StagToken, "true"));
+                claims.Add(new Claim(CustomClaims.Role, stagUser.activeStagUserInfo.Role));
+            }
+            else
+            {
+                // external user claims
+                claims.Add(new Claim(CustomClaims.StagToken, "false"));
+                claims.Add(new Claim(CustomClaims.UserName, ""));
+                claims.Add(new Claim(CustomClaims.Role, Constants.StagRole.Student));
+
+            }
+
+
 
             var claimsIdentity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -161,6 +189,7 @@ namespace bachelor_work_backend.Controllers
             var stagTokenClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.StagToken);
             var userIdClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserId);
             var userNameClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserName);
+            var roleClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.Role);
 
             if (stagTokenClaim.Value == "true")
             {
@@ -174,16 +203,16 @@ namespace bachelor_work_backend.Controllers
                 var stagUser = await AuthenticationService.GetStagUserAsync(wscookie);
 
                 // check if user contains role
-                var userHasRole = stagUser.stagUserInfo.Any(c => c.UserName == roleHeader.Value);
+                var stagUserInfo = stagUser.stagUserInfo.SingleOrDefault(c => c.UserName == roleHeader.Value);
 
                 // nastaveni role ve ktere jsem
-                if (userHasRole)
+                if (stagUserInfo != null)
                 {
                     claims.Remove(userNameClaim);
-                    claims.Add(new Claim(CustomClaims.UserName, roleHeader.Value));
+                    claims.Remove(roleClaim);
 
-                    // TODO ULOZIT CLAIM !!
-                    //await this.signInManager.RefreshSignInAsync(user);
+                    claims.Add(new Claim(CustomClaims.UserName, stagUserInfo.UserName));
+                    claims.Add(new Claim(CustomClaims.Role, stagUserInfo.Role));
 
                     var claimsIdentity = new ClaimsIdentity(
                         claims, CookieAuthenticationDefaults.AuthenticationScheme);

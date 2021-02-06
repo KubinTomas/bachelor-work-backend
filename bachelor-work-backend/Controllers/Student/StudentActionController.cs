@@ -137,9 +137,9 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-is-full");
             }
 
-            StudentActionService.StudentJoinAction(action, userName);
+            var res = StudentActionService.StudentJoinAction(action, userName);
 
-            return Ok();
+            return Ok(res);
         }
 
         [HttpGet, Route("leave/{actionId}")]
@@ -200,9 +200,9 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-is-not-full");
             }
 
-            StudentActionService.StudentJoinActionQueue(action, userName);
+            var res = StudentActionService.StudentJoinActionQueue(action, userName);
 
-            return Ok();
+            return Ok(res);
         }
 
         [HttpGet, Route("queue/leave/{actionId}")]

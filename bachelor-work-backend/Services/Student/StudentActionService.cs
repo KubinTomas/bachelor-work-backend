@@ -54,6 +54,11 @@ namespace bachelor_work_backend.Services.Student
 
                 actionDto.BlockAttendanceRestrictionAllowSignIn = BlockAttendanceRestrictionAllowSignIn(c, filter.StudentOsCislo);
 
+                if (!actionDto.BlockAttendanceRestrictionAllowSignIn)
+                {
+                    actionDto.BlockAttendanceRestrictionAllowSignInMessageCode = BlockAttendanceRestrictionAllowSignInMessageCode(c, filter.StudentOsCislo);
+                }
+
                 // nejsem prihlasen, nejsem ve fronte, kapacita je volna, a mam nesplnenou dochazku TODO: Dotat kontrolu te dochazky...
                 actionDto.CanSignIn = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.MaxCapacity > actionDto.SignedUsersCount && actionDto.BlockAttendanceRestrictionAllowSignIn;
                 actionDto.CanSignInQueue = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.SignedUsersCount >= actionDto.MaxCapacity && actionDto.BlockAttendanceRestrictionAllowSignIn;
@@ -131,6 +136,7 @@ namespace bachelor_work_backend.Services.Student
                 .Include(c => c.BlockActionAttendances)
                 .Include(c => c.BlockActionPeopleEnrollQueues)
                 .Include(c => c.Block.BlockStagUserWhitelists)
+                .Include(c => c.Block.BlockRestriction)
                 //.Include(c => c.Block)
                 //.Include(c => c.Block.SubjectInYearTerm)
                 //.Include(c => c.Block.SubjectInYearTerm.SubjectInYear)
@@ -154,6 +160,7 @@ namespace bachelor_work_backend.Services.Student
         public BlockAction? GetStudentAction(int id, string studentOsCislo)
         {
             return context.BlockActions
+            .Include(c => c.Block.BlockRestriction)
             .Include(c => c.BlockActionRestriction)
             .Include(c => c.BlockActionAttendances)
             .Include(c => c.BlockActionPeopleEnrollQueues)
@@ -173,16 +180,41 @@ namespace bachelor_work_backend.Services.Student
             return action.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == studentOsCislo);
         }
 
-        public bool BlockAttendanceRestrictionAllowSignIn(BlockAction action, string studentOsCislo)
+        public int BlockAttendanceRestrictionAllowSignInMessageCode(BlockAction action, string studentOsCislo)
         {
-            return true;
+            return Constants.Action.WaitingForAttendanceEvaluation;
         }
 
-        public void StudentJoinAction(BlockAction action, string studentOsCislo)
+        /// <summary>
+        /// Blok má nastaveno kolikrát uživatel může být v řadě přihlášen na akce. Pokud 0, uživatel se může přihlásit na všechny akce. Pokud třeba 3. Uživatel se může současně přihlásit max na 3 akce.
+        /// Pokud splní docházku akce, pak se může přihlásit jen na 2. Pokud se čeká na vyhodnocení docházky, stále se může přihlásit jen na 3 - počet akcí, kde se vyhodnocuje docházka - již úspěšně absolbované akce
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="studentOsCislo"></param>
+        /// <returns></returns>
+        public bool BlockAttendanceRestrictionAllowSignIn(BlockAction action, string studentOsCislo)
+        {
+            var blockMaxActionAttendLimit = action.Block.BlockRestriction.ActionAttendLimit;
+
+            if (blockMaxActionAttendLimit == 0)
+            {
+                return true;
+            }
+
+            var attendanceToEvaluate = action.Block.BlockActions.Count(c => c.BlockActionAttendances.Any(x => x.StudentOsCislo == studentOsCislo && !x.EvaluationDate.HasValue));
+            var attendanceFinished = action.Block.BlockActions.Count(c => c.BlockActionAttendances.Any(x => x.StudentOsCislo == studentOsCislo && x.EvaluationDate.HasValue && x.Fulfilled));
+
+            var attendanceInQueueWhichCanStillMoveUserToAttendance = action.Block.BlockActions
+                .Count(c => c.BlockActionPeopleEnrollQueues.Any(x => x.StudentOsCislo == studentOsCislo && c.AttendanceSignOffEndDate > DateTime.Now));
+            // a zaroven kontrolovat frontu akci?? Respektive frontu akci, ktere teprve budou, takze se z fronty muze stat to ze se prihlasi
+            return (attendanceToEvaluate + attendanceFinished + attendanceInQueueWhichCanStillMoveUserToAttendance) < blockMaxActionAttendLimit;
+        }
+
+        public bool StudentJoinAction(BlockAction action, string studentOsCislo)
         {
             if (IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
             {
-                return;
+                return false;
             }
 
             var actionSign = new BlockActionAttendance()
@@ -195,14 +227,16 @@ namespace bachelor_work_backend.Services.Student
 
             action.BlockActionAttendances.Add(actionSign);
             context.SaveChanges();
+
+            return true;
         }
 
 
-        public void StudentJoinActionQueue(BlockAction action, string studentOsCislo)
+        public bool StudentJoinActionQueue(BlockAction action, string studentOsCislo)
         {
             if (IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
             {
-                return;
+                return false;
             }
 
             var queue = new BlockActionPeopleEnrollQueue()
@@ -214,6 +248,8 @@ namespace bachelor_work_backend.Services.Student
 
             action.BlockActionPeopleEnrollQueues.Add(queue);
             context.SaveChanges();
+
+            return true;
         }
 
 

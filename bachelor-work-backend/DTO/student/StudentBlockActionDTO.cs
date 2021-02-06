@@ -27,6 +27,7 @@ namespace bachelor_work_backend.DTO.student
         public bool IsUserSignedInQueue { get; set; }
         public bool CanSignIn { get; set; }
         public bool BlockAttendanceRestrictionAllowSignIn { get; set; }
+        public int BlockAttendanceRestrictionAllowSignInMessageCode { get; set; }
         public bool CanSignInQueue { get; set; }
 
     }

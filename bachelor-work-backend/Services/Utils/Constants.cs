@@ -7,6 +7,13 @@ namespace bachelor_work_backend.Services.Utils
 {
     public  static class Constants
     {
+
+        public static class Action
+        {
+            public const int BlockRequirementsCompleted = 1;
+            public const int WaitingForAttendanceEvaluation = 2;
+        }
+
         public static class Stag
         {
             public const string Aktivni = "A";

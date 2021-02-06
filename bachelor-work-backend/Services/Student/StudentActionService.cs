@@ -160,10 +160,11 @@ namespace bachelor_work_backend.Services.Student
         public BlockAction? GetStudentAction(int id, string studentOsCislo)
         {
             return context.BlockActions
-            .Include(c => c.Block.BlockRestriction)
-            .Include(c => c.BlockActionRestriction)
-            .Include(c => c.BlockActionAttendances)
-            .Include(c => c.BlockActionPeopleEnrollQueues)
+               .Include(c => c.BlockActionRestriction)
+               .Include(c => c.BlockActionAttendances)
+               .Include(c => c.BlockActionPeopleEnrollQueues)
+               .Include(c => c.Block.BlockStagUserWhitelists)
+               .Include(c => c.Block.BlockRestriction)
             .SingleOrDefault(c => c.Id == id && c.IsActive && c.Visible &&
             (!c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList ||
             (c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList && c.Block.BlockStagUserWhitelists.Any(c => c.StudentOsCislo == studentOsCislo))));
@@ -201,12 +202,20 @@ namespace bachelor_work_backend.Services.Student
                 return true;
             }
 
+            var blockActions = context.BlockActions
+                .Include(c => c.BlockActionAttendances)
+                .Include(c => c.BlockActionPeopleEnrollQueues)
+                .Where(c => c.BlockId == action.BlockId && c.IsActive && c.Visible &&
+                (!c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList ||
+                (c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList && c.Block.BlockStagUserWhitelists.Any(c => c.StudentOsCislo == studentOsCislo)))).ToList();
+
             var attendanceToEvaluate = action.Block.BlockActions.Count(c => c.BlockActionAttendances.Any(x => x.StudentOsCislo == studentOsCislo && !x.EvaluationDate.HasValue));
             var attendanceFinished = action.Block.BlockActions.Count(c => c.BlockActionAttendances.Any(x => x.StudentOsCislo == studentOsCislo && x.EvaluationDate.HasValue && x.Fulfilled));
 
             var attendanceInQueueWhichCanStillMoveUserToAttendance = action.Block.BlockActions
                 .Count(c => c.BlockActionPeopleEnrollQueues.Any(x => x.StudentOsCislo == studentOsCislo && c.AttendanceSignOffEndDate > DateTime.Now));
-            // a zaroven kontrolovat frontu akci?? Respektive frontu akci, ktere teprve budou, takze se z fronty muze stat to ze se prihlasi
+
+
             return (attendanceToEvaluate + attendanceFinished + attendanceInQueueWhichCanStillMoveUserToAttendance) < blockMaxActionAttendLimit;
         }
 

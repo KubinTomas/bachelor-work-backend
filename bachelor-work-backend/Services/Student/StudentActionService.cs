@@ -286,6 +286,39 @@ namespace bachelor_work_backend.Services.Student
 
             context.BlockActionAttendances.Remove(actionSign);
             context.SaveChanges();
+
+            TryMovePeopleInQueue(action.Id, studentOsCislo);
+        }
+
+        /// <summary>
+        /// Zatim funguje jen pro studenty
+        /// </summary>
+        /// <param name="actionId"></param>
+        public void TryMovePeopleInQueue(int actionId, string studentOsCislo)
+        {
+            var action = context.BlockActions
+               .Include(c => c.BlockActionRestriction)
+               .Include(c => c.BlockActionAttendances)
+               .Include(c => c.BlockActionPeopleEnrollQueues)
+               .Include(c => c.Block.BlockStagUserWhitelists)
+               .Include(c => c.Block.BlockRestriction)
+               .Single(c => c.Id == actionId);
+
+            var actionLimit = action.BlockActionRestriction.MaxCapacity;
+            var signedPeopleCount = action.BlockActionAttendances.Count();
+
+            if (signedPeopleCount < actionLimit && action.BlockActionPeopleEnrollQueues.Count != 0)
+            {
+                var peopleInQueue = action.BlockActionPeopleEnrollQueues.OrderBy(c => c.DateIn);
+                var personToMove = action.BlockActionPeopleEnrollQueues.First();
+
+                var result = StudentJoinActionQueue(action, studentOsCislo);
+
+                if (result)
+                {
+                    StudentLeaveActionQueue(action, studentOsCislo);
+                }
+            }
         }
 
     }

@@ -37,6 +37,57 @@ namespace bachelor_work_backend.Controllers
             //this.signInManager = signInManager;
         }
 
+        [HttpGet, Route("role/student")]
+        [Authorize]
+        public async Task<IActionResult> RoleStudent()
+        {
+            var claims = User.Claims;
+
+            var roleClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.Role);
+
+            if (roleClaim == null)
+            {
+                return Ok(false);
+            }
+
+            return Ok(Constants.StagRole.StuentRoles.Contains(roleClaim.Value));
+        }
+
+        [HttpGet, Route("role/administrator")]
+        [Authorize]
+        public async Task<IActionResult> RoleAdministrator()
+        {
+            var claims = User.Claims;
+
+            var roleClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.Role);
+
+            if (roleClaim == null)
+            {
+                return Ok(false);
+            }
+
+            return Ok(Constants.StagRole.AdminRoles.Contains(roleClaim.Value));
+        }
+
+
+        [HttpGet, Route("role")]
+        [Authorize]
+        public async Task<IActionResult> Role()
+        {
+            var claims = User.Claims;
+
+            var roleClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.Role);
+
+            if(roleClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(roleClaim.Value);
+        }
+
+
+
         [HttpPost, Route("logout")]
         public async Task<IActionResult> Logout()
         {

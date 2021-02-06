@@ -22,7 +22,7 @@ namespace bachelor_work_backend.Services.Utils
             public const string Student = "ST";
 
             public static readonly List<string> AdminRoles = new List<string> { Vyucujici, Dekan, ECTSKoordinátorPracoviste, VedouciKatedry };
-            public static readonly List<string> StuentRoles = new List<string> { Vyucujici };
+            public static readonly List<string> StuentRoles = new List<string> { Student };
         }
     }
 }

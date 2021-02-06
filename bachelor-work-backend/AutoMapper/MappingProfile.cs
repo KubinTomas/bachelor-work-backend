@@ -61,6 +61,11 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<BlockAction, BlockActionDTO>()
                    .ForMember(c => c.BlockActionRestriction, s => s.MapFrom(c => c.BlockActionRestriction));
 
+
+            CreateMap<BlockAction, StudentBlockActionDTO>()
+                 .ForMember(c => c.MaxCapacity, s => s.MapFrom(c => c.BlockActionRestriction.MaxCapacity))
+                 .ForMember(c => c.UsersInQueueCount, s => s.MapFrom(c => c.BlockActionPeopleEnrollQueues.Count))
+                 .ForMember(c => c.SignedUsersCount, s => s.MapFrom(c => c.BlockActionAttendances.Count));
         }
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using bachelor_work_backend.Filters.Permission;
+using bachelor_work_backend.Models.Authentication;
 
 namespace bachelor_work_backend.Controllers.Student
 {
@@ -64,16 +65,16 @@ namespace bachelor_work_backend.Controllers.Student
                 return Unauthorized();
             }
 
-            var user = await AuthenticationService.GetStagUserAsync(wscookie);
+            var userName = await GetUserStagName();
 
-            if (user == null)
+            if (string.IsNullOrEmpty(userName))
             {
                 return Unauthorized();
             }
 
             var filter = new ActionPostModelDTO()
             {
-                StudentOsCislo = user.activeStagUserInfo.UserName,
+                StudentOsCislo = userName,
                 AttendanceEnum = ActionAttendanceEnum.All,
                 HistoryEnum = ActionHistoryEnum.All,
                 SignEnum = ActionSignInEnum.All,
@@ -83,5 +84,156 @@ namespace bachelor_work_backend.Controllers.Student
 
             return Ok(actions);
         }
+        private async Task<string> GetUserStagName()
+        {
+            var claims = User.Claims;
+            var userNameClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserName);
+
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            var stagUser = await AuthenticationService.GetStagUserAsync(wscookie);
+
+            if(stagUser == null)
+            {
+                return string.Empty;
+            }
+
+            var stagUserInfo = stagUser.stagUserInfo.SingleOrDefault(c => c.UserName == userNameClaim.Value);
+
+            if (stagUserInfo != null)
+            {
+                return stagUserInfo.UserName;
+            }
+
+            return string.Empty;
+        }
+
+        [HttpGet, Route("join/{actionId}")]
+        public async Task<IActionResult> JoinAction(int actionId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var userName = await GetUserStagName();
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized();
+            }
+
+            var action =  StudentActionService.GetStudentAction(actionId, userName);
+
+            if(action == null)
+            {
+                return BadRequest("action-id-for-user-not-permitted");
+            }
+
+            if (StudentActionService.IsActionFull(action))
+            {
+                return BadRequest("action-is-full");
+            }
+
+            StudentActionService.StudentJoinAction(action, userName);
+
+            return Ok();
+        }
+
+        [HttpGet, Route("leave/{actionId}")]
+        public async Task<IActionResult> LeaveAction(int actionId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var userName = await GetUserStagName();
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized();
+            }
+
+            var action = StudentActionService.GetStudentAction(actionId, userName);
+
+            if (action == null)
+            {
+                return BadRequest("action-id-for-user-not-permitted");
+            }
+
+            StudentActionService.StudentLeaveAction(action, userName);
+
+            return Ok();
+        }
+
+        [HttpGet, Route("queue/join/{actionId}")]
+        public async Task<IActionResult> JoinActionQueue(int actionId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var userName = await GetUserStagName();
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized();
+            }
+
+            var action = StudentActionService.GetStudentAction(actionId, userName);
+
+            if (action == null)
+            {
+                return BadRequest("action-id-for-user-not-permitted");
+            }
+
+            if (!StudentActionService.IsActionFull(action))
+            {
+                return BadRequest("action-is-not-full");
+            }
+
+            StudentActionService.StudentJoinActionQueue(action, userName);
+
+            return Ok();
+        }
+
+        [HttpGet, Route("queue/leave/{actionId}")]
+        public async Task<IActionResult> LeaveActionQueue(int actionId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var userName = await GetUserStagName();
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized();
+            }
+
+            var action = StudentActionService.GetStudentAction(actionId, userName);
+
+            if (action == null)
+            {
+                return BadRequest("action-id-for-user-not-permitted");
+            }
+
+            StudentActionService.StudentLeaveActionQueue(action, userName);
+
+            return Ok();
+        }
+
+
     }
 }

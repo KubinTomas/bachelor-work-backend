@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using bachelor_work_backend.Filters.Permission;
 using bachelor_work_backend.Models.Authentication;
+using bachelor_work_backend.DTO.student;
 
 namespace bachelor_work_backend.Controllers.Student
 {
@@ -54,9 +55,8 @@ namespace bachelor_work_backend.Controllers.Student
             StudentActionService = new StudentActionService(context, mapper, StagApiService);
         }
 
-
-        [HttpGet, Route("")]
-        public async Task<IActionResult> GetActions()
+        [HttpGet, Route("{id}")]
+        public async Task<IActionResult> GetAction(int id)
         {
             var wscookie = Request.Cookies["WSCOOKIE"];
 
@@ -72,14 +72,44 @@ namespace bachelor_work_backend.Controllers.Student
                 return Unauthorized();
             }
 
-            var filter = new ActionPostModelDTO()
+            var actionDto = StudentActionService.GetStudentActionDTO(id, userName);
+
+            if (actionDto == null)
             {
-                StudentOsCislo = userName,
-                AttendanceEnum = ActionAttendanceEnum.All,
-                HistoryEnum = ActionHistoryEnum.All,
-                SignEnum = ActionSignInEnum.All,
-                IsStudent = true
-            };
+                return BadRequest("action-not-found");
+            }
+
+            return Ok(actionDto);
+        }
+
+        [HttpPost, Route("")]
+        public async Task<IActionResult> GetActions(ActionPostModelDTO filter)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var userName = await GetUserStagName();
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized();
+            }
+
+            filter.StudentOsCislo = userName;
+            filter.IsStudent = true;
+
+            //var filter = new ActionPostModelDTO()
+            //{
+            //    StudentOsCislo = userName,
+            //    AttendanceEnum = ActionAttendanceEnum.All,
+            //    HistoryEnum = ActionHistoryEnum.All,
+            //    SignEnum = ActionSignInEnum.All,
+            //    IsStudent = true
+            //};
             var actions = StudentActionService.GetActions(filter);
 
             return Ok(actions);
@@ -93,7 +123,7 @@ namespace bachelor_work_backend.Controllers.Student
 
             var stagUser = await AuthenticationService.GetStagUserAsync(wscookie);
 
-            if(stagUser == null)
+            if (stagUser == null)
             {
                 return string.Empty;
             }
@@ -125,9 +155,9 @@ namespace bachelor_work_backend.Controllers.Student
                 return Unauthorized();
             }
 
-            var action =  StudentActionService.GetStudentAction(actionId, userName);
+            var action = StudentActionService.GetStudentAction(actionId, userName);
 
-            if(action == null)
+            if (action == null)
             {
                 return BadRequest("action-id-for-user-not-permitted");
             }
@@ -166,9 +196,9 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-id-for-user-not-permitted");
             }
 
-            StudentActionService.StudentLeaveAction(action, userName);
+            var res = StudentActionService.StudentLeaveAction(action, userName);
 
-            return Ok();
+            return Ok(res);
         }
 
         [HttpGet, Route("queue/join/{actionId}")]
@@ -229,9 +259,9 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-id-for-user-not-permitted");
             }
 
-            StudentActionService.StudentLeaveActionQueue(action, userName);
+            var res = StudentActionService.StudentLeaveActionQueue(action, userName);
 
-            return Ok();
+            return Ok(res);
         }
 
 

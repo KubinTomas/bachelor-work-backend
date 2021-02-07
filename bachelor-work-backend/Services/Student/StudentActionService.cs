@@ -48,20 +48,24 @@ namespace bachelor_work_backend.Services.Student
 
             actions.ToList().ForEach(c =>
             {
-                var actionDto = mapper.Map<BlockAction, StudentBlockActionDTO>(c);
-                actionDto.IsUserSignedIn = c.BlockActionAttendances.Any(c => c.StudentOsCislo == filter.StudentOsCislo);
-                actionDto.IsUserSignedInQueue = c.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == filter.StudentOsCislo);
+                var actionDto = GetStudentActionDTO(c, filter.StudentOsCislo);
+                //var actionDto = mapper.Map<BlockAction, StudentBlockActionDTO>(c);
+                //actionDto.IsUserSignedIn = c.BlockActionAttendances.Any(c => c.StudentOsCislo == filter.StudentOsCislo);
+                //actionDto.IsUserSignedInQueue = c.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == filter.StudentOsCislo);
 
-                actionDto.BlockAttendanceRestrictionAllowSignIn = BlockAttendanceRestrictionAllowSignIn(c, filter.StudentOsCislo);
+                //actionDto.BlockAttendanceRestrictionAllowSignIn = BlockAttendanceRestrictionAllowSignIn(c, filter.StudentOsCislo);
+                //actionDto.DateRestrictionCanSignIn = DateRestrictionCanSignToAction(c);
 
-                if (!actionDto.BlockAttendanceRestrictionAllowSignIn)
-                {
-                    actionDto.BlockAttendanceRestrictionAllowSignInMessageCode = BlockAttendanceRestrictionAllowSignInMessageCode(c, filter.StudentOsCislo);
-                }
 
-                // nejsem prihlasen, nejsem ve fronte, kapacita je volna, a mam nesplnenou dochazku TODO: Dotat kontrolu te dochazky...
-                actionDto.CanSignIn = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.MaxCapacity > actionDto.SignedUsersCount && actionDto.BlockAttendanceRestrictionAllowSignIn;
-                actionDto.CanSignInQueue = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.SignedUsersCount >= actionDto.MaxCapacity && actionDto.BlockAttendanceRestrictionAllowSignIn;
+
+                //if (!actionDto.BlockAttendanceRestrictionAllowSignIn)
+                //{
+                //    actionDto.BlockAttendanceRestrictionAllowSignInMessageCode = BlockAttendanceRestrictionAllowSignInMessageCode(c, filter.StudentOsCislo);
+                //}
+
+                //// nejsem prihlasen, nejsem ve fronte, kapacita je volna, a mam nesplnenou dochazku TODO: Dotat kontrolu te dochazky...
+                //actionDto.CanSignIn = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.MaxCapacity > actionDto.SignedUsersCount && actionDto.BlockAttendanceRestrictionAllowSignIn;
+                //actionDto.CanSignInQueue = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.SignedUsersCount >= actionDto.MaxCapacity && actionDto.BlockAttendanceRestrictionAllowSignIn;
 
                 actionsDto.Add(actionDto);
             });
@@ -157,6 +161,42 @@ namespace bachelor_work_backend.Services.Student
         {
             return action.BlockActionAttendances.Count >= action.BlockActionRestriction.MaxCapacity;
         }
+        public StudentBlockActionDTO? GetStudentActionDTO(int id, string studentOsCislo)
+        {
+            var action = GetStudentAction(id, studentOsCislo);
+
+            if (action == null)
+            {
+                return default;
+            }
+
+            return GetStudentActionDTO(action, studentOsCislo);
+        }
+
+        public StudentBlockActionDTO GetStudentActionDTO(BlockAction action, string studentOsCislo)
+        {
+            var actionDto = mapper.Map<BlockAction, StudentBlockActionDTO>(action);
+
+            actionDto.IsUserSignedIn = action.BlockActionAttendances.Any(c => c.StudentOsCislo == studentOsCislo);
+            actionDto.IsUserSignedInQueue = action.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == studentOsCislo);
+
+            actionDto.BlockAttendanceRestrictionAllowSignIn = BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo);
+            actionDto.DateRestrictionCanSignIn = DateRestrictionCanSignToAction(action);
+
+
+
+            if (!actionDto.BlockAttendanceRestrictionAllowSignIn)
+            {
+                actionDto.BlockAttendanceRestrictionAllowSignInMessageCode = BlockAttendanceRestrictionAllowSignInMessageCode(action, studentOsCislo);
+            }
+
+            // nejsem prihlasen, nejsem ve fronte, kapacita je volna, a mam nesplnenou dochazku TODO: Dotat kontrolu te dochazky...
+            actionDto.CanSignIn = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.MaxCapacity > actionDto.SignedUsersCount && actionDto.BlockAttendanceRestrictionAllowSignIn;
+            actionDto.CanSignInQueue = !actionDto.IsUserSignedIn && !actionDto.IsUserSignedInQueue && actionDto.SignedUsersCount >= actionDto.MaxCapacity && actionDto.BlockAttendanceRestrictionAllowSignIn;
+
+            return actionDto;
+        }
+
         public BlockAction? GetStudentAction(int id, string studentOsCislo)
         {
             return context.BlockActions
@@ -221,7 +261,7 @@ namespace bachelor_work_backend.Services.Student
 
         public bool StudentJoinAction(BlockAction action, string studentOsCislo)
         {
-            if (IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
+            if (!DateRestrictionCanSignToAction(action) || IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
             {
                 return false;
             }
@@ -243,7 +283,7 @@ namespace bachelor_work_backend.Services.Student
 
         public bool StudentJoinActionQueue(BlockAction action, string studentOsCislo)
         {
-            if (IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
+            if (!DateRestrictionCanSignToAction(action) || IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
             {
                 return false;
             }
@@ -261,33 +301,66 @@ namespace bachelor_work_backend.Services.Student
             return true;
         }
 
+        public bool CanSignOffFromAction(BlockAction action)
+        {
+            return action.AttendanceSignOffEndDate >= DateTime.Now;
+        }
 
-        public void StudentLeaveActionQueue(BlockAction action, string studentOsCislo)
+        public bool DateRestrictionCanSignToAction(BlockAction action)
+        {
+            if (action.AttendanceAllowStartDate.HasValue && DateTime.Now < action.AttendanceAllowStartDate.Value)
+            {
+                return false;
+            }
+
+            if (action.AttendanceAllowEndDate.HasValue && DateTime.Now > action.AttendanceAllowEndDate.Value)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool StudentLeaveActionQueue(BlockAction action, string studentOsCislo)
         {
             var queue = action.BlockActionPeopleEnrollQueues.SingleOrDefault(c => c.StudentOsCislo == studentOsCislo);
 
             if (queue == null)
             {
-                return;
+                return true;
+            }
+
+            if (!CanSignOffFromAction(action))
+            {
+                return false;
             }
 
             context.BlockActionPeopleEnrollQueues.Remove(queue);
             context.SaveChanges();
+
+            return true;
         }
 
-        public void StudentLeaveAction(BlockAction action, string studentOsCislo)
+        public bool StudentLeaveAction(BlockAction action, string studentOsCislo)
         {
             var actionSign = action.BlockActionAttendances.SingleOrDefault(c => c.StudentOsCislo == studentOsCislo);
 
             if (actionSign == null)
             {
-                return;
+                return true;
+            }
+
+            if (!CanSignOffFromAction(action))
+            {
+                return false;
             }
 
             context.BlockActionAttendances.Remove(actionSign);
             context.SaveChanges();
 
             TryMovePeopleInQueue(action.Id, studentOsCislo);
+
+            return true;
         }
 
         /// <summary>

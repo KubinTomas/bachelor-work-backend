@@ -1,4 +1,5 @@
-﻿using System;
+﻿using bachelor_work_backend.DTO.person;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,5 +26,11 @@ namespace bachelor_work_backend.DTO.subject
         public string? UcitelName { get; set; }
         public int StudentCount { get; set; }
         public BlockActionRestrictionDTO BlockActionRestriction { get; set; }
+        public int SignedUsersCount { get; set; }
+        public int UsersInQueueCount { get; set; }
+
+        public List<ActionPersonDTO> SignedUsers { get; set; }
+        public List<ActionPersonDTO> SignedUsersInQueue { get; set; }
+
     }
 }

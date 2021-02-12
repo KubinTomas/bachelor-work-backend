@@ -133,6 +133,10 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 blockDto.UcitelName = ucitelInfo.Jmeno + " " + ucitelInfo.Prijmeni;
             }
 
+            // get queue people
+
+            // get
+
             return blockDto;
 
         }

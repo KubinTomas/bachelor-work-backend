@@ -186,6 +186,31 @@ namespace bachelor_work_backend.Controllers
             return Ok(actions);
         }
 
+
+
+        [HttpGet, Route("detail/{actionId}")]
+        public async Task<IActionResult> GetAction(int actionId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var action = await ActionService.GetDto(actionId, wscookie);
+
+            return Ok(action);
+        }
+
+
         //[HttpGet, Route("detail/{blockId}")]
         //public async Task<IActionResult> GetDetail(int blockId)
         //{

@@ -119,6 +119,8 @@ namespace bachelor_work_backend.Services.SubjectFolder
             actionDto.SignedUsers = await GetSignedPersons(action.BlockActionAttendances.ToList(), wscookie);
             actionDto.SignedUsersInQueue = await GetSignedPersonsQueue(action.BlockActionPeopleEnrollQueues.OrderByDescending(c => c.Id).ToList(), wscookie);
 
+            actionDto.block = mapper.Map<Block, BlockDTO>(action.Block);
+
             return actionDto;
         }
         private async Task<List<ActionPersonDTO>> GetSignedPersonsQueue(List<BlockActionPeopleEnrollQueue> queue, string wscookie)
@@ -200,6 +202,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         public BlockAction? Get(int actionId)
         {
             return context.BlockActions
+                .Include(c => c.Block.SubjectInYearTerm.SubjectInYear.Subject)
                 .Include(c => c.BlockActionAttendances)
                 .Include(c => c.BlockActionPeopleEnrollQueues)
                 .Include(c => c.BlockActionRestriction)

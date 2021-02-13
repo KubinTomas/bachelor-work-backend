@@ -32,5 +32,7 @@ namespace bachelor_work_backend.DTO.subject
         public List<ActionPersonDTO> SignedUsers { get; set; }
         public List<ActionPersonDTO> SignedUsersInQueue { get; set; }
 
+        public BlockDTO block { get; set; }
+
     }
 }

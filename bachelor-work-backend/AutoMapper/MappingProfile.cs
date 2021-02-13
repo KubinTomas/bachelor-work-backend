@@ -16,6 +16,12 @@ namespace bachelor_work_backend.AutoMapper
     {
         public MappingProfile()
         {
+            CreateMap<StagStudent, StudentDTO>()
+                 .ForMember(c => c.StudentOsCislo, s => s.MapFrom(c => c.osCislo))
+                 .ForMember(c => c.Fullname, s => s.MapFrom(c => c.jmeno + " " + c.prijmeni))
+                 .ForMember(c => c.fakultaSp, s => s.MapFrom(c => c.fakultaSp))
+                 .ForMember(c => c.rocnik, s => s.MapFrom(c => c.rocnik));
+
             CreateMap<SubjectDTO, Subject>();
             CreateMap<Subject, SubjectDTO>()
                 .ForMember(c => c.FakultaKatedra, s => s.MapFrom(c => c.Fakulta + "/" + c.Katedra));

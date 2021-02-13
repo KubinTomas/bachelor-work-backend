@@ -210,28 +210,104 @@ namespace bachelor_work_backend.Controllers
             return Ok(action);
         }
 
+        [HttpDelete, Route("queue/kick/{id}")]
+        public async Task<IActionResult> ActionQueueKick(int id)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
 
-        //[HttpGet, Route("detail/{blockId}")]
-        //public async Task<IActionResult> GetDetail(int blockId)
-        //{
-        //    var wscookie = Request.Cookies["WSCOOKIE"];
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
 
-        //    if (string.IsNullOrEmpty(wscookie))
-        //    {
-        //        return Unauthorized();
-        //    }
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
 
-        //    var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
 
-        //    if (string.IsNullOrEmpty(ucitelIdno))
-        //    {
-        //        return Unauthorized();
-        //    }
+            var queue = ActionService.GetQueue(id);
+            var subject = queue.Action.Block.SubjectInYearTerm.SubjectInYear.Subject;
 
-        //    var block = await ActionService.GetSingleDTOAsync(blockId, ucitelIdno, wscookie);
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
 
-        //    return Ok(block);
-        //}
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            ActionService.ActionQueueKick(queue);
+
+            return Ok();
+        }
+
+        [HttpDelete, Route("attendance/kick/{id}")]
+        public async Task<IActionResult> ActionAttendanceKick(int id)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var attendance = ActionService.GetAttendance(id);
+            var subject = attendance.Action.Block.SubjectInYearTerm.SubjectInYear.Subject;
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            ActionService.ActionAttendanceKick(attendance);
+
+            return Ok();
+        }
+
+
+
+        [HttpGet, Route("attendance/fulfilled/{attendanceId}/{fulfilled}")]
+        public async Task<IActionResult> ActionAttendanceFulfilled(int attendanceId, bool fulfilled)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var attendance = ActionService.GetAttendance(attendanceId);
+            var subject = attendance.Action.Block.SubjectInYearTerm.SubjectInYear.Subject;
+
+            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var person = await ActionService.ActionAttendanceFulfilled(attendance, fulfilled, wscookie);
+
+            return Ok(person);
+        }
 
     }
 }

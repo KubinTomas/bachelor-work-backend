@@ -9,6 +9,7 @@ namespace bachelor_work_backend.DTO.person
     {
         public int Id { get; set; }
         public string Fullname { get; set; }
+        public string StudentOsCislo { get; set; }
         public bool IsStagStudent { get; set; }
         public DateTime? EvaluationDate { get; set; }
         public DateTime DateIn { get; set; }

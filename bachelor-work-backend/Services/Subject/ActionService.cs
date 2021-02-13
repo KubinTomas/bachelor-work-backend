@@ -44,6 +44,60 @@ namespace bachelor_work_backend.Services.SubjectFolder
             context.SaveChanges();
         }
 
+        public async Task<ActionPersonDTO> ActionAttendanceFulfilled(BlockActionAttendance attendance, bool fulfilled, string wscookie)
+        {
+            attendance.Fulfilled = fulfilled;
+            attendance.EvaluationDate = DateTime.Now;
+
+            context.SaveChanges();
+
+            return await GetActionPersonDTO(attendance, wscookie);
+        }
+
+        public async Task<ActionPersonDTO> ActionAttendanceFulfilled(int attendanceId, bool fulfilled, string wscookie)
+        {
+            var attendance = GetAttendance(attendanceId);
+
+            return await ActionAttendanceFulfilled(attendance, fulfilled, wscookie);
+        }
+
+        public BlockActionAttendance GetAttendance(int id)
+        {
+            return context.BlockActionAttendances
+                          .Include(c => c.Action.Block.SubjectInYearTerm.SubjectInYear.Subject)
+                          .SingleOrDefault(c => c.Id == id);
+        }
+
+        public void ActionAttendanceKick(BlockActionAttendance attendance)
+        {
+            context.BlockActionAttendances.Remove(attendance);
+            context.SaveChanges();
+        }
+
+        public void ActionAttendanceKick(int id)
+        {
+            ActionAttendanceKick(GetAttendance(id));
+        }
+
+        public BlockActionPeopleEnrollQueue GetQueue(int id)
+        {
+            return context.BlockActionPeopleEnrollQueues
+                          .Include(c => c.Action.Block.SubjectInYearTerm.SubjectInYear.Subject)
+                          .SingleOrDefault(c => c.Id == id);
+        }
+
+        public void ActionQueueKick(BlockActionPeopleEnrollQueue queue)
+        {
+            context.BlockActionPeopleEnrollQueues.Remove(queue);
+            context.SaveChanges();
+        }
+
+        public void ActionQueueKick(int id)
+        {
+            ActionQueueKick(GetQueue(id));
+        }
+
+
         public async Task<BlockActionDTO?> GetDto(int actionId, string wscookie)
         {
             var action = Get(actionId);
@@ -86,11 +140,12 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 var person = new ActionPersonDTO
                 {
                     Id = entry.Id,
-                    Fullname = isStudent ? student.jmeno + " " + student.prijmeni : "",
+                    StudentOsCislo = entry.StudentOsCislo,
+                    Fullname = isStudent ? student?.jmeno + " " + student?.prijmeni : "",
                     IsStagStudent = !string.IsNullOrEmpty(entry.StudentOsCislo),
                     DateIn = entry.DateIn,
-                    rocnik = student.rocnik,
-                    fakultaSp = student.fakultaSp,
+                    rocnik = student?.rocnik,
+                    fakultaSp = student?.fakultaSp,
                     queueOrder = order++
                 };
 
@@ -107,24 +162,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             foreach (var attendance in attendances)
             {
-                var student = new StagStudent();
-                var isStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo);
-
-                if (isStudent)
-                {
-                    student = await StagApiService.StagStudentApiService.GetStudentInfo(attendance.StudentOsCislo, wscookie);
-                }
-
-                var person = new ActionPersonDTO
-                {
-                    Id = attendance.Id,
-                    Fullname = isStudent? student.jmeno + " " + student.prijmeni : "",
-                    IsStagStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo),
-                    EvaluationDate = attendance.EvaluationDate,
-                    Fulfilled = attendance.Fulfilled,
-                    rocnik = student.rocnik,
-                    fakultaSp = student.fakultaSp
-                };
+                var person = await GetActionPersonDTO(attendance, wscookie);
 
                 persons.Add(person);
             }
@@ -132,7 +170,31 @@ namespace bachelor_work_backend.Services.SubjectFolder
             return persons;
         }
 
-    
+        public async Task<ActionPersonDTO> GetActionPersonDTO(BlockActionAttendance attendance, string wscookie)
+        {
+            var student = new StagStudent();
+            var isStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo);
+
+            if (isStudent)
+            {
+                student = await StagApiService.StagStudentApiService.GetStudentInfo(attendance.StudentOsCislo, wscookie);
+            }
+
+            return new ActionPersonDTO
+            {
+                Id = attendance.Id,
+                StudentOsCislo = attendance.StudentOsCislo,
+                Fullname = isStudent ? student.jmeno + " " + student.prijmeni : "",
+                IsStagStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo),
+                EvaluationDate = attendance.EvaluationDate,
+                Fulfilled = attendance.Fulfilled,
+                rocnik = student.rocnik,
+                fakultaSp = student.fakultaSp
+            };
+
+        }
+
+
 
 
         public BlockAction? Get(int actionId)

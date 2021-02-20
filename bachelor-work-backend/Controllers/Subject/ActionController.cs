@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AutoMapper;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.student;
 using bachelor_work_backend.DTO.subject;
 using bachelor_work_backend.DTO.Whitelist;
 using bachelor_work_backend.Filters.Permission;
@@ -78,7 +79,7 @@ namespace bachelor_work_backend.Controllers
             }
 
             var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -111,7 +112,7 @@ namespace bachelor_work_backend.Controllers
                 return BadRequest();
             }
 
-            var block = BlockService.Get(action.Id);
+            var block = BlockService.Get(action.BlockId);
 
             if (block == null)
             {
@@ -119,7 +120,7 @@ namespace bachelor_work_backend.Controllers
             }
 
             var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -151,7 +152,7 @@ namespace bachelor_work_backend.Controllers
             }
 
             var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -181,6 +182,22 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
+            var block = BlockService.Get(blockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+
             var actions = await ActionService.GetDTOAsync(blockId, ucitelIdno, wscookie);
 
             return Ok(actions);
@@ -205,9 +222,24 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            var action = await ActionService.GetDto(actionId, wscookie);
+            var action = ActionService.Get(actionId);
 
-            return Ok(action);
+            if(action == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = action.Block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var actionDto = await ActionService.GetDto(actionId, wscookie);
+
+            return Ok(actionDto);
         }
 
         [HttpDelete, Route("queue/kick/{id}")]
@@ -230,7 +262,7 @@ namespace bachelor_work_backend.Controllers
             var queue = ActionService.GetQueue(id);
             var subject = queue.Action.Block.SubjectInYearTerm.SubjectInYear.Subject;
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
 
             if (!hasPermission)
@@ -263,7 +295,7 @@ namespace bachelor_work_backend.Controllers
             var attendance = ActionService.GetAttendance(id);
             var subject = attendance.Action.Block.SubjectInYearTerm.SubjectInYear.Subject;
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -297,7 +329,7 @@ namespace bachelor_work_backend.Controllers
             var attendance = ActionService.GetAttendance(attendanceId);
             var subject = attendance.Action.Block.SubjectInYearTerm.SubjectInYear.Subject;
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -308,6 +340,65 @@ namespace bachelor_work_backend.Controllers
 
             return Ok(person);
         }
+
+        [HttpPost, Route("add/student")]
+        public async Task<IActionResult> AddStudent(StudentDTO student)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var action = ActionService.Get(student.blockOrActionId);
+
+            if (action == null)
+            {
+                return BadRequest();
+            }
+
+            var block = BlockService.Get(action.BlockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var doesStudentAttendAction = ActionService.DoesStudentAttendAction(student.blockOrActionId, student.StudentOsCislo);
+
+            if (doesStudentAttendAction)
+            {
+                return BadRequest("Student je již na akci přihlášen");
+            }
+
+            var st = await StagApiService.StagStudentApiService.GetStudentInfo(student.StudentOsCislo, wscookie);
+
+            if (st == null)
+            {
+                return BadRequest("Student nebyl nalezen");
+            }
+
+            var person = await ActionService.AddStudent(student, wscookie);
+
+            return Ok(person);
+        }
+
 
     }
 }

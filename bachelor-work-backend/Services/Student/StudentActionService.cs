@@ -173,12 +173,35 @@ namespace bachelor_work_backend.Services.Student
             return GetStudentActionDTO(action, studentOsCislo);
         }
 
+        public int GetOrderInQueue(BlockAction action, string studentOsCislo)
+        {
+            var order = 1;
+            var queueList = action.BlockActionPeopleEnrollQueues.Select(c => studentOsCislo).ToList();
+
+            foreach (var queue in queueList)
+            {
+                if (queue == studentOsCislo)
+                {
+                    return order;
+                }
+
+                order++;
+            }
+     
+            return order;
+        }
+
         public StudentBlockActionDTO GetStudentActionDTO(BlockAction action, string studentOsCislo)
         {
             var actionDto = mapper.Map<BlockAction, StudentBlockActionDTO>(action);
 
             actionDto.IsUserSignedIn = action.BlockActionAttendances.Any(c => c.StudentOsCislo == studentOsCislo);
             actionDto.IsUserSignedInQueue = action.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == studentOsCislo);
+
+            if (actionDto.IsUserSignedInQueue)
+            {
+                actionDto.OrderInQueue = GetOrderInQueue(action, studentOsCislo);
+            }
 
             actionDto.BlockAttendanceRestrictionAllowSignIn = BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo);
             actionDto.DateRestrictionCanSignIn = DateRestrictionCanSignToAction(action);

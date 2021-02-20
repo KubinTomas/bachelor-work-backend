@@ -120,7 +120,7 @@ namespace bachelor_work_backend.Controllers
                 return BadRequest("invalidSubjectId");
             }
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -158,7 +158,7 @@ namespace bachelor_work_backend.Controllers
 
             var subject = term.SubjectInYear.Subject;
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -185,6 +185,21 @@ namespace bachelor_work_backend.Controllers
             if (string.IsNullOrEmpty(ucitelIdno))
             {
                 return Unauthorized();
+            }
+
+            var term = TermService.Get(termId);
+
+            if(term== null)
+            {
+                return BadRequest();
+            }
+
+            var subject = term.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
             }
 
             var connections = await TermStagConnectionService.GetDTOAsync(termId, ucitelIdno, wscookie);

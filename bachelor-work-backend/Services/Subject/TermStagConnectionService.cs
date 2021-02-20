@@ -105,7 +105,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
                 if (stagPredmetStudents != null)
                 {
-                    connectionDTO.pocetStudentu = stagPredmetStudents.Count;
+                    connectionDTO.pocetStudentu = stagPredmetStudents.Where(c => c.stav == "A").Count();
                 }
 
                 if (stagPredmetInfo != null)

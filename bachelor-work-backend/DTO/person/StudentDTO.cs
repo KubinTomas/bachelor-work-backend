@@ -12,5 +12,7 @@ namespace bachelor_work_backend.DTO.student
         public string StudentOsCislo { get; set; }
         public string rocnik { get; set; }
         public string fakultaSp { get; set; }
+        public int blockOrActionId { get; set; }
+        public string formaSp { get; set; }
     }
 }

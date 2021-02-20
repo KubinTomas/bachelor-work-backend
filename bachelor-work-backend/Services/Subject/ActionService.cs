@@ -37,6 +37,12 @@ namespace bachelor_work_backend.Services.SubjectFolder
             }
         }
 
+        public bool DoesStudentAttendAction(int actionId, string studentOsCislo)
+        {
+            return context.BlockActionAttendances.Any(c => c.ActionId == actionId && c.StudentOsCislo == studentOsCislo);
+        }
+
+
         public void Update(BlockAction action, BlockActionDTO actionDTO)
         {
             action.Name = actionDTO.Name;
@@ -97,6 +103,19 @@ namespace bachelor_work_backend.Services.SubjectFolder
             ActionQueueKick(GetQueue(id));
         }
 
+        public async Task<ActionPersonDTO> AddStudent(StudentDTO student, string wscookie){
+            var attendance = new BlockActionAttendance
+            {
+                ActionId = student.blockOrActionId,
+                DateIn = DateTime.Now,
+                StudentOsCislo = student.StudentOsCislo
+            };
+
+            context.BlockActionAttendances.Add(attendance);
+            context.SaveChanges();
+
+            return await GetActionPersonDTO(attendance, wscookie);
+        }
 
         public async Task<BlockActionDTO?> GetDto(int actionId, string wscookie)
         {

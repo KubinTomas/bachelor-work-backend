@@ -167,6 +167,10 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 {
                     students.Add(mapper.Map<StagStudent, WhitelistStagStudentDTO>(student));
                 }
+                else
+                {
+                    students.Add(new WhitelistStagStudentDTO() { osCislo = whitelistEntry.StudentOsCislo });
+                }
             }
 
             return students;
@@ -192,7 +196,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 var rozvrhoveAkce = await StagApiService.StagRozvrhyApiService.GetRozvrhoveAkce(connection.Year, connection.Term, connection.ZkrPredm, wscookie);
                 var predmetStudenti = (await StagApiService.StagPredmetyApiService.GetStudentiByPredmet(connection.Department, connection.Year, connection.Term, connection.ZkrPredm, wscookie));
 
-                predmet.Students = predmetStudenti.Select(c => mapper.Map<StagStudent, WhitelistStagStudentDTO>(c)).ToList();
+                predmet.Students = predmetStudenti.Where(c => c.stav == "A").Select(c => mapper.Map<StagStudent, WhitelistStagStudentDTO>(c)).ToList();
 
                 if (rozvrhoveAkce != null)
                 {
@@ -230,7 +234,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             DeleteWhitelist(whitelistDTO.blockId);
 
-            var whitelistData = whitelistDTO.studentsOsCislo.Select(c => new BlockStagUserWhitelist() { StudentOsCislo = c, BlockId = whitelistDTO.blockId }).ToList();
+            var whitelistData = whitelistDTO.studentsOsCislo.Distinct().Select(c => new BlockStagUserWhitelist() { StudentOsCislo = c, BlockId = whitelistDTO.blockId }).ToList();
 
             context.BlockStagUserWhitelists.AddRange(whitelistData);
             context.SaveChanges();

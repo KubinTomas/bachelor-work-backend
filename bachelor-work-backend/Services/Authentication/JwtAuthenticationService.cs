@@ -63,6 +63,24 @@ namespace bachelor_work_backend.Services
             return true;
         }
 
+        public async Task<StagUserInfo> GetActiveStagUserInfoAsync(string wscookie, ClaimsPrincipal user)
+        {
+            var stagUser = await StagApiService.StagUserApiService.GetStagUserAsync(wscookie);
+
+            var claims = user.Claims.ToList();
+            var userNameClaimDefined = claims.SingleOrDefault(c => c.Type == CustomClaims.UserName);
+
+            var roleByServerCookie = stagUser.stagUserInfo.SingleOrDefault(c => c.UserName == userNameClaimDefined.Value);
+
+            if (roleByServerCookie != null)
+            {
+                stagUser.activeStagUserInfo = roleByServerCookie;
+            }
+
+            return stagUser.activeStagUserInfo;
+        }
+
+
         public async Task<User> GetStagUserAsync(string wscookie)
         {
             return await StagApiService.StagUserApiService.GetStagUserAsync(wscookie);
@@ -83,7 +101,7 @@ namespace bachelor_work_backend.Services
             return StagApiService.StagUserApiService.GetUcitelIdnoAsync(wscookie);
         }
 
-        public async Task<bool> CanDeleteOrUpdateSubject(string wscookie, Subject subject)
+        public async Task<bool> CanManageSubject(string wscookie, Subject subject)
         {
             var stagUser = await GetStagUserAsync(wscookie);
 
@@ -99,5 +117,6 @@ namespace bachelor_work_backend.Services
             return hasPermission;
         }
 
+       
     }
 }

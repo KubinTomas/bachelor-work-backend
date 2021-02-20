@@ -71,7 +71,7 @@ namespace bachelor_work_backend.Controllers
             var term = TermService.Get(blockDTO.TermId);
             var subject = term.SubjectInYear.Subject;
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -105,7 +105,7 @@ namespace bachelor_work_backend.Controllers
             }
 
             var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -135,7 +135,7 @@ namespace bachelor_work_backend.Controllers
             }
 
             var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {
@@ -165,6 +165,21 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
+            var term = TermService.Get(termId);
+
+            if (term == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = term.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
             var blocks = await BlockService.GetDTOAsync(termId, ucitelIdno, wscookie);
 
             return Ok(blocks);
@@ -187,9 +202,24 @@ namespace bachelor_work_backend.Controllers
                 return Unauthorized();
             }
 
-            var block = await BlockService.GetSingleDTOAsync(blockId, ucitelIdno, wscookie);
+            var block = BlockService.Get(blockId);
 
-            return Ok(block);
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var blockDto = await BlockService.GetSingleDTOAsync(blockId, ucitelIdno, wscookie);
+
+            return Ok(blockDto);
         }
 
         [HttpGet, Route("whitelist/{blockId}")]
@@ -216,6 +246,21 @@ namespace bachelor_work_backend.Controllers
                 return BadRequest();
             }
 
+            var block = BlockService.Get(blockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
             return Ok(whitelist);
         }
 
@@ -239,7 +284,7 @@ namespace bachelor_work_backend.Controllers
             var block = BlockService.Get(whitelistDTO.blockId);
             var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
 
-            var hasPermission = await AuthenticationService.CanDeleteOrUpdateSubject(wscookie, subject);
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
 
             if (!hasPermission)
             {

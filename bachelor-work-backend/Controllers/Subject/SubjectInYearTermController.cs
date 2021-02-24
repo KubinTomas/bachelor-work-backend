@@ -25,7 +25,7 @@ namespace bachelor_work_backend.Controllers
     {
         private readonly IMapper mapper;
         private readonly BachContext context;
-        public JwtAuthenticationService AuthenticationService { get; private set; }
+        public AuthenticationService AuthenticationService { get; private set; }
         public SubjectInYearTermService TermService { get; private set; }
         public SubjectService SubjectService { get; private set; }
         public StagApiService StagApiService { get; private set; }
@@ -46,7 +46,7 @@ namespace bachelor_work_backend.Controllers
 
             TermService = new SubjectInYearTermService(context, mapper, StagApiService);
             SubjectService = new SubjectService(context, mapper, StagApiService);
-            AuthenticationService = new JwtAuthenticationService(configuration, StagApiService);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
         }
 
 

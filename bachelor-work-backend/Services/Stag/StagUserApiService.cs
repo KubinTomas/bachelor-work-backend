@@ -32,7 +32,7 @@ namespace bachelor_work_backend.Services.Stag
         {
             return await GetStagUserListForLoginTicketAsync(wscookie) != null;
         }
-        public async Task<User?> GetStagUserAsync(string wscookie)
+        public async Task<UserDto?> GetStagUserAsync(string wscookie)
         {
             var stagUserInfoList = await GetStagUserListForLoginTicketAsync(wscookie);
 
@@ -45,7 +45,7 @@ namespace bachelor_work_backend.Services.Stag
 
             var actualStagUser = await GetStagUserForActualUserAsync(stagUser, wscookie);
 
-            var user = new User()
+            var user = new UserDto()
             {
                 activeStagUserInfo = actualStagUser,
                 stagUserInfo = stagUserInfoList,

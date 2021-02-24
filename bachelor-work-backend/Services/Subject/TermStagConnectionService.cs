@@ -103,10 +103,11 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 var stagPredmetInfo = await StagApiService.StagPredmetyApiService.GetPredmetInfo(connection.Department, connection.Year, connection.Term, connection.ZkrPredm, wscookie);
                 var stagPredmetStudents = await StagApiService.StagPredmetyApiService.GetStudentiByPredmet(connection.Department, connection.Year, connection.Term, connection.ZkrPredm, wscookie);
 
-                if (stagPredmetStudents != null)
-                {
-                    connectionDTO.pocetStudentu = stagPredmetStudents.Where(c => c.stav == "A").Count();
-                }
+                connectionDTO.pocetStudentu = stagPredmetStudents.Count();
+                //if (stagPredmetStudents != null)
+                //{
+                //    connectionDTO.pocetStudentu = stagPredmetStudents.Where(c => c.stav == "A").Count();
+                //}
 
                 if (stagPredmetInfo != null)
                 {

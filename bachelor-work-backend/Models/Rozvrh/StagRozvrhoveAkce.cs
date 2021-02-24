@@ -12,7 +12,7 @@ namespace bachelor_work_backend.Models.Rozvrh
         public string katedra { get; set; }
         public string predmet { get; set; }
         public object statut { get; set; }
-        public int ucitIdno { get; set; }
+        public int? ucitIdno { get; set; }
         public Ucitel ucitel { get; set; }
         public string rok { get; set; }
         public string budova { get; set; }

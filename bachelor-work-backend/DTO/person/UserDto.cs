@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace bachelor_work_backend.Models.Authentication
 {
-    public class User
+    public class UserDto
     {
         public string Name { get; set; }
         public string Email { get; set; }

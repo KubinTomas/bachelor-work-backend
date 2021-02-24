@@ -16,7 +16,7 @@ namespace bachelor_work_backend.Models.Subject
         public string vyukaLS { get; set; }
         public int kreditu { get; set; }
         public string viceZapis { get; set; }
-        public int minObsazeni { get; set; }
+        public int? minObsazeni { get; set; }
         public string garanti { get; set; }
         public string garantiSPodily { get; set; }
         public string garantiUcitIdno { get; set; }

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.person;
 using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.Services;
@@ -29,11 +31,11 @@ namespace bachelor_work_backend.Controllers
 
         //private readonly SignInManager<ClaimsPrincipal> signInManager;
         //SignInManager<ClaimsPrincipal> signInManager
-        public AuthenticationController(IConfiguration configuration, IHttpClientFactory clientFactory)
+        public AuthenticationController(IConfiguration configuration, IHttpClientFactory clientFactory, BachContext context)
         {
             ClientFactory = clientFactory;
             Configuration = configuration;
-            AuthenticationService = new JwtAuthenticationService(configuration, new StagApiService(configuration, clientFactory));
+            AuthenticationService = new Services.AuthenticationService(configuration, new StagApiService(configuration, clientFactory), context);
             //this.signInManager = signInManager;
         }
 
@@ -86,6 +88,20 @@ namespace bachelor_work_backend.Controllers
             return Ok(roleClaim.Value);
         }
 
+        [HttpPost, Route("registration")]
+        public async Task<IActionResult> Registration(UserRegistrationDTO user)
+        {
+            if (!AuthenticationService.IsEmailAvailable(user.Email))
+            {
+                return BadRequest();
+
+            }
+            return BadRequest();
+
+            var result = AuthenticationService.Registration(user);
+
+            return Ok();
+        }
 
 
         [HttpPost, Route("logout")]

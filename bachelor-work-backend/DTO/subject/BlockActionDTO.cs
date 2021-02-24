@@ -29,10 +29,10 @@ namespace bachelor_work_backend.DTO.subject
         public int SignedUsersCount { get; set; }
         public int UsersInQueueCount { get; set; }
 
-        public List<ActionPersonDTO> SignedUsers { get; set; }
-        public List<ActionPersonDTO> SignedUsersInQueue { get; set; }
+        public List<ActionPersonDTO>? SignedUsers { get; set; }
+        public List<ActionPersonDTO>? SignedUsersInQueue { get; set; }
 
-        public BlockDTO block { get; set; }
+        public BlockDTO? Block { get; set; }
 
     }
 }

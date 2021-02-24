@@ -26,7 +26,7 @@ namespace bachelor_work_backend.Controllers
     {
         private readonly IMapper mapper;
         private readonly BachContext context;
-        public JwtAuthenticationService AuthenticationService { get; private set; }
+        public AuthenticationService AuthenticationService { get; private set; }
         public BlockService BlockService { get; private set; }
         public SubjectInYearTermService TermService { get; private set; }
         public StagApiService StagApiService { get; private set; }
@@ -47,7 +47,7 @@ namespace bachelor_work_backend.Controllers
 
             BlockService = new BlockService(context, mapper, StagApiService);
             TermService = new SubjectInYearTermService(context, mapper, StagApiService);
-            AuthenticationService = new JwtAuthenticationService(configuration, StagApiService);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
         }
 
 
@@ -183,6 +183,43 @@ namespace bachelor_work_backend.Controllers
             var blocks = await BlockService.GetDTOAsync(termId, ucitelIdno, wscookie);
 
             return Ok(blocks);
+        }
+
+        [HttpGet, Route("students/{blockId}")]
+        public async Task<IActionResult> GetBlockStudents(int blockId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var block = BlockService.Get(blockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var studentsDto = await BlockService.GetBlockStudents(blockId, ucitelIdno, wscookie);
+
+            return Ok(studentsDto);
         }
 
         [HttpGet, Route("detail/{blockId}")]

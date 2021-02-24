@@ -28,6 +28,7 @@ namespace bachelor_work_backend.Database
         public virtual DbSet<SubjectInYear> SubjectInYears { get; set; }
         public virtual DbSet<SubjectInYearTerm> SubjectInYearTerms { get; set; }
         public virtual DbSet<TermStagConnection> TermStagConnections { get; set; }
+        public virtual DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

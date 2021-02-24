@@ -138,7 +138,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             actionDto.SignedUsers = await GetSignedPersons(action.BlockActionAttendances.ToList(), wscookie);
             actionDto.SignedUsersInQueue = await GetSignedPersonsQueue(action.BlockActionPeopleEnrollQueues.OrderByDescending(c => c.Id).ToList(), wscookie);
 
-            actionDto.block = mapper.Map<Block, BlockDTO>(action.Block);
+            actionDto.Block = mapper.Map<Block, BlockDTO>(action.Block);
 
             return actionDto;
         }

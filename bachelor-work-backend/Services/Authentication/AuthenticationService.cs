@@ -1,4 +1,5 @@
 ﻿using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.person;
 using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.Services.Authentication;
@@ -16,15 +17,17 @@ using System.Threading.Tasks;
 
 namespace bachelor_work_backend.Services
 {
-    public class JwtAuthenticationService : IAuthenticationService
+    public class AuthenticationService : IAuthenticationService
     {
         public IConfiguration Configuration { get; private set; }
         public StagApiService StagApiService { get; private set; }
+        public BachContext Context { get; private set; }
 
-        public JwtAuthenticationService(IConfiguration configuration, StagApiService stagApiService)
+        public AuthenticationService(IConfiguration configuration, StagApiService stagApiService, BachContext context)
         {
             Configuration = configuration;
             StagApiService = stagApiService;
+            Context = context;
         }
 
         public async Task<AuthenticationResult> Authorize()
@@ -81,12 +84,12 @@ namespace bachelor_work_backend.Services
         }
 
 
-        public async Task<User> GetStagUserAsync(string wscookie)
+        public async Task<UserDto> GetStagUserAsync(string wscookie)
         {
             return await StagApiService.StagUserApiService.GetStagUserAsync(wscookie);
         }
 
-        public User GetDbUser(int userId)
+        public UserDto GetDbUser(int userId)
         {
             throw new NotImplementedException("DbUser side is not implemented yet");
         }
@@ -110,13 +113,50 @@ namespace bachelor_work_backend.Services
                 return false;
             }
 
-            var hasPermission = stagUser.stagUserInfo.Any(c => c.Fakulta == subject.Fakulta && 
-                                                               c.Katedra == subject.Katedra && 
-                                                               ( Constants.StagRole.AdminRoles.Contains(c.Role)));
+            var hasPermission = stagUser.stagUserInfo.Any(c => c.Fakulta == subject.Fakulta &&
+                                                               c.Katedra == subject.Katedra &&
+                                                               (Constants.StagRole.AdminRoles.Contains(c.Role)));
 
             return hasPermission;
         }
+        //BCrypt.Net-Next
+        // https://jasonwatmore.com/post/2020/07/16/aspnet-core-3-hash-and-verify-passwords-with-bcrypt
+        // https://www.nuget.org/packages/BCrypt.Net-Next/
+        public bool Registration(UserRegistrationDTO userDTO)
+        {
+            if (!IsEmailAvailable(userDTO.Email) || string.IsNullOrEmpty(userDTO.Name) || string.IsNullOrEmpty(userDTO.Surname))
+            {
+                return false;
+            }
 
-       
+            byte[] salt = new byte[128 / 8];
+
+            var user = new User
+            {
+                Name = userDTO.Name,
+                Surname = userDTO.Surname,
+                Email = userDTO.Email,
+                Guid = Guid.NewGuid().ToString(),
+                Confirmed = false,
+                Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password)
+            };
+
+
+            Context.Users.Add(user);
+            Context.SaveChanges();
+
+            return true;
+        }
+
+
+        public bool IsEmailAvailable(string email)
+        {
+            return !Context.Users.Any(c => c.Email.ToLower() == email.ToLower());
+        }
+
+        public bool VerifyPassword(string password, string passwordHashed)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, passwordHashed);
+        }
     }
 }

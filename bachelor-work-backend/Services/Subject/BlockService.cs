@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.person;
 using bachelor_work_backend.DTO.Rozvrh;
 using bachelor_work_backend.DTO.student;
 using bachelor_work_backend.DTO.subject;
@@ -113,6 +114,40 @@ namespace bachelor_work_backend.Services.SubjectFolder
             }
 
             return blocksDTO;
+        }
+
+        public async Task<List<BlockStudentDTO>> GetBlockStudents(int blockId, string ucitelIdno, string wscookie)
+        {
+            var students = new List<BlockStudentDTO>();
+            var block = Get(blockId);
+
+            var blockStudentWhitelist = await GetWhiteListDTO(blockId, ucitelIdno, wscookie);
+
+            foreach (var whitelistStudent in blockStudentWhitelist.SelectedStudents)
+            {
+                var student = new BlockStudentDTO
+                {
+                    FakultaSp = whitelistStudent.fakultaSp,
+                    FormaSp = whitelistStudent.formaSp,
+                    Name = whitelistStudent.jmeno + " " + whitelistStudent.prijmeni,
+                    Rocnik = whitelistStudent.rocnik,
+                    StudentOsCislo = whitelistStudent.osCislo,
+                    AttendanceFulfillCount = AttendanceFulfillCount(whitelistStudent.osCislo, blockId),
+                    BlockAttendanceCount = block.BlockRestriction.ActionAttendLimit
+                };
+
+                students.Add(student);
+            }
+
+            return students;
+        }
+
+        private int AttendanceFulfillCount(string studentOsCislo, int blockId)
+        {
+            return context.BlockActionAttendances.Where(c => c.Fulfilled == true
+            && c.EvaluationDate.HasValue
+            && c.Action.BlockId == blockId
+            && c.StudentOsCislo == studentOsCislo).Count();
         }
 
         public async Task<BlockDTO> GetSingleDTOAsync(int blockId, string ucitelIdno, string wscookie)

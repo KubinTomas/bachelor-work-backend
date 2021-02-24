@@ -30,7 +30,7 @@ namespace bachelor_work_backend.Controllers.Student
     {
         private readonly IMapper mapper;
         private readonly BachContext context;
-        public JwtAuthenticationService AuthenticationService { get; private set; }
+        public AuthenticationService AuthenticationService { get; private set; }
         public StagApiService StagApiService { get; private set; }
         public IConfiguration Configuration { get; private set; }
         public IHttpClientFactory ClientFactory { get; private set; }
@@ -47,7 +47,7 @@ namespace bachelor_work_backend.Controllers.Student
             Configuration = configuration;
             StagApiService = new StagApiService(configuration, clientFactory);
 
-            AuthenticationService = new JwtAuthenticationService(configuration, StagApiService);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
         }
 
         [HttpGet, Route("student/{studentOsCislo}")]

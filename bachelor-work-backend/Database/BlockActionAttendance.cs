@@ -19,8 +19,8 @@ namespace bachelor_work_backend.Database
         [Column("studentOsCislo")]
         [StringLength(50)]
         public string StudentOsCislo { get; set; }
-        [Column("stagUserId")]
-        public int? StagUserId { get; set; }
+        [Column("userId")]
+        public int? UserId { get; set; }
         [Column("fulfilled")]
         public bool Fulfilled { get; set; }
         [Column("dateIn", TypeName = "datetime")]

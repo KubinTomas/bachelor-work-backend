@@ -19,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using bachelor_work_backend.Filters.Permission;
 using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.DTO.student;
+using bachelor_work_backend.Models.Validation;
 
 namespace bachelor_work_backend.Controllers.Student
 {
@@ -82,34 +83,64 @@ namespace bachelor_work_backend.Controllers.Student
             return Ok(actionDto);
         }
 
+        private async Task<ValidationModel> Validate()
+        {
+            var validation = new ValidationModel();
+
+            var user = User;
+            var claims = user.Claims.ToList();
+
+            var stagTokenClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.StagToken);
+            var userIdClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserId);
+
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (stagTokenClaim.Value == "true")
+            {
+                if (string.IsNullOrEmpty(wscookie))
+                {
+                    return new ValidationModel(Unauthorized());
+                }
+
+                var userName = await GetUserStagName();
+
+                if (string.IsNullOrEmpty(userName))
+                {
+                    return new ValidationModel(Unauthorized());
+                }
+
+                validation.StudentOsCislo = userName;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(userIdClaim.Value))
+                {
+                    return new ValidationModel(Unauthorized());
+                }
+
+                validation.UserId = int.Parse(userIdClaim.Value);
+            }
+
+            validation.IsStudent = stagTokenClaim.Value == "true";
+            validation.IsValid = true;
+
+            return validation;
+        }
+
         [HttpPost, Route("")]
         public async Task<IActionResult> GetActions(ActionPostModelDTO filter)
         {
-            var wscookie = Request.Cookies["WSCOOKIE"];
+            var validateResult = await Validate();
 
-            if (string.IsNullOrEmpty(wscookie))
+            if (!validateResult.IsValid)
             {
-                return Unauthorized();
+                return validateResult.ActionResult;
             }
 
-            var userName = await GetUserStagName();
+            filter.IsStudent = validateResult.IsStudent;
+            filter.StudentOsCislo = validateResult.StudentOsCislo;
+            filter.UserId = validateResult.UserId;
 
-            if (string.IsNullOrEmpty(userName))
-            {
-                return Unauthorized();
-            }
-
-            filter.StudentOsCislo = userName;
-            filter.IsStudent = true;
-
-            //var filter = new ActionPostModelDTO()
-            //{
-            //    StudentOsCislo = userName,
-            //    AttendanceEnum = ActionAttendanceEnum.All,
-            //    HistoryEnum = ActionHistoryEnum.All,
-            //    SignEnum = ActionSignInEnum.All,
-            //    IsStudent = true
-            //};
             var actions = StudentActionService.GetActions(filter);
 
             return Ok(actions);
@@ -141,21 +172,16 @@ namespace bachelor_work_backend.Controllers.Student
         [HttpGet, Route("join/{actionId}")]
         public async Task<IActionResult> JoinAction(int actionId)
         {
-            var wscookie = Request.Cookies["WSCOOKIE"];
+            var validateResult = await Validate();
 
-            if (string.IsNullOrEmpty(wscookie))
+            if (!validateResult.IsValid)
             {
-                return Unauthorized();
+                return validateResult.ActionResult;
             }
 
-            var userName = await GetUserStagName();
 
-            if (string.IsNullOrEmpty(userName))
-            {
-                return Unauthorized();
-            }
-
-            var action = StudentActionService.GetStudentAction(actionId, userName);
+            var action = validateResult.IsStudent ? StudentActionService.GetStudentAction(actionId, validateResult.StudentOsCislo) :
+                StudentActionService.GetStudentAction(actionId);
 
             if (action == null)
             {
@@ -167,7 +193,8 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-is-full");
             }
 
-            var res = StudentActionService.StudentJoinAction(action, userName);
+            var res = validateResult.IsStudent ? StudentActionService.StudentJoinAction(action, validateResult.StudentOsCislo) :
+                StudentActionService.StudentJoinAction(action, validateResult.UserId);
 
             return Ok(res);
         }
@@ -175,28 +202,23 @@ namespace bachelor_work_backend.Controllers.Student
         [HttpGet, Route("leave/{actionId}")]
         public async Task<IActionResult> LeaveAction(int actionId)
         {
-            var wscookie = Request.Cookies["WSCOOKIE"];
+            var validateResult = await Validate();
 
-            if (string.IsNullOrEmpty(wscookie))
+            if (!validateResult.IsValid)
             {
-                return Unauthorized();
+                return validateResult.ActionResult;
             }
 
-            var userName = await GetUserStagName();
-
-            if (string.IsNullOrEmpty(userName))
-            {
-                return Unauthorized();
-            }
-
-            var action = StudentActionService.GetStudentAction(actionId, userName);
+            var action = validateResult.IsStudent ? StudentActionService.GetStudentAction(actionId, validateResult.StudentOsCislo) :
+                 StudentActionService.GetStudentAction(actionId);
 
             if (action == null)
             {
                 return BadRequest("action-id-for-user-not-permitted");
             }
 
-            var res = StudentActionService.StudentLeaveAction(action, userName);
+            var res = validateResult.IsStudent ? StudentActionService.StudentLeaveAction(action, validateResult.StudentOsCislo) :
+                 StudentActionService.StudentLeaveAction(action, validateResult.UserId);
 
             return Ok(res);
         }
@@ -204,21 +226,15 @@ namespace bachelor_work_backend.Controllers.Student
         [HttpGet, Route("queue/join/{actionId}")]
         public async Task<IActionResult> JoinActionQueue(int actionId)
         {
-            var wscookie = Request.Cookies["WSCOOKIE"];
+            var validateResult = await Validate();
 
-            if (string.IsNullOrEmpty(wscookie))
+            if (!validateResult.IsValid)
             {
-                return Unauthorized();
+                return validateResult.ActionResult;
             }
 
-            var userName = await GetUserStagName();
-
-            if (string.IsNullOrEmpty(userName))
-            {
-                return Unauthorized();
-            }
-
-            var action = StudentActionService.GetStudentAction(actionId, userName);
+            var action = validateResult.IsStudent ? StudentActionService.GetStudentAction(actionId, validateResult.StudentOsCislo) :
+            StudentActionService.GetStudentAction(actionId);
 
             if (action == null)
             {
@@ -230,7 +246,8 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-is-not-full");
             }
 
-            var res = StudentActionService.StudentJoinActionQueue(action, userName);
+            var res = validateResult.IsStudent ? StudentActionService.StudentJoinActionQueue(action, validateResult.StudentOsCislo) :
+            StudentActionService.StudentJoinActionQueue(action, validateResult.UserId);
 
             return Ok(res);
         }
@@ -238,28 +255,23 @@ namespace bachelor_work_backend.Controllers.Student
         [HttpGet, Route("queue/leave/{actionId}")]
         public async Task<IActionResult> LeaveActionQueue(int actionId)
         {
-            var wscookie = Request.Cookies["WSCOOKIE"];
+            var validateResult = await Validate();
 
-            if (string.IsNullOrEmpty(wscookie))
+            if (!validateResult.IsValid)
             {
-                return Unauthorized();
+                return validateResult.ActionResult;
             }
 
-            var userName = await GetUserStagName();
-
-            if (string.IsNullOrEmpty(userName))
-            {
-                return Unauthorized();
-            }
-
-            var action = StudentActionService.GetStudentAction(actionId, userName);
+            var action = validateResult.IsStudent ? StudentActionService.GetStudentAction(actionId, validateResult.StudentOsCislo) :
+            StudentActionService.GetStudentAction(actionId);
 
             if (action == null)
             {
                 return BadRequest("action-id-for-user-not-permitted");
             }
-
-            var res = StudentActionService.StudentLeaveActionQueue(action, userName);
+          
+            var res = validateResult.IsStudent ? StudentActionService.StudentLeaveActionQueue(action, validateResult.StudentOsCislo) :
+                StudentActionService.StudentLeaveActionQueue(action, validateResult.UserId);
 
             return Ok(res);
         }

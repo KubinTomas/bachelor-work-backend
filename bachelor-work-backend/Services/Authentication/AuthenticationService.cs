@@ -91,7 +91,20 @@ namespace bachelor_work_backend.Services
 
         public UserDto GetDbUser(int userId)
         {
-            throw new NotImplementedException("DbUser side is not implemented yet");
+            var user = GetUser(userId);
+
+            var userDto = new UserDto()
+            {
+                Email = user.Email,
+                Name = user.Name,
+                activeStagUserInfo = new StagUserInfo()
+                {
+                    Role = Constants.StagRole.Student
+                },
+                stagUserInfo = new List<StagUserInfo>()
+            };
+
+            return userDto;
         }
 
         public Task<bool> IsStagUserCookieValidAsync(string wscookie)
@@ -135,7 +148,7 @@ namespace bachelor_work_backend.Services
             {
                 Name = userDTO.Name,
                 Surname = userDTO.Surname,
-                Email = userDTO.Email,
+                Email = userDTO.Email.Trim(),
                 Guid = Guid.NewGuid().ToString(),
                 Confirmed = false,
                 Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password)
@@ -146,6 +159,29 @@ namespace bachelor_work_backend.Services
             Context.SaveChanges();
 
             return true;
+        }
+
+        public User? GetUser(string email)
+        {
+            return Context.Users.SingleOrDefault(c => c.Email.ToLower() == email.Trim().ToLower());
+        }
+
+        public User? GetUser(int id)
+        {
+            return Context.Users.SingleOrDefault(c => c.Id == id);
+        }
+        public User? Login(string email, string password)
+        {
+            var user = GetUser(email);
+
+            if(user == null)
+            {
+                return null;
+            }
+
+            var validPassword = VerifyPassword(password, user.Password);
+
+            return validPassword ? user : null;
         }
 
 

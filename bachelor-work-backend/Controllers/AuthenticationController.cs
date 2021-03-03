@@ -25,7 +25,7 @@ namespace bachelor_work_backend.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        public Services.Authentication.IAuthenticationService AuthenticationService { get; private set; }
+        public Services.AuthenticationService AuthenticationService { get; private set; }
         public IConfiguration Configuration { get; private set; }
         public IHttpClientFactory ClientFactory { get; private set; }
 
@@ -71,7 +71,7 @@ namespace bachelor_work_backend.Controllers
             return Ok(Constants.StagRole.AdminRoles.Contains(roleClaim.Value));
         }
 
-
+        
         [HttpGet, Route("role")]
         [Authorize]
         public async Task<IActionResult> Role()
@@ -88,6 +88,18 @@ namespace bachelor_work_backend.Controllers
             return Ok(roleClaim.Value);
         }
 
+
+        [HttpGet, Route("email/available")]
+        public async Task<IActionResult> IsEmailAvailable()
+        {
+            var email = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "email").Value;
+
+            var result = AuthenticationService.IsEmailAvailable(email);
+
+            return Ok(result);
+        }
+
+
         [HttpPost, Route("registration")]
         public async Task<IActionResult> Registration(UserRegistrationDTO user)
         {
@@ -96,7 +108,6 @@ namespace bachelor_work_backend.Controllers
                 return BadRequest();
 
             }
-            return BadRequest();
 
             var result = AuthenticationService.Registration(user);
 
@@ -112,18 +123,12 @@ namespace bachelor_work_backend.Controllers
         }
 
 
-        [HttpPost, Route("login")]
-        public async Task<IActionResult> Login([FromBody]LoginModel user)
+        [HttpGet, Route("login")]
+        public async Task<IActionResult> Login()
         {
-            if (user == null)
-            {
-                return BadRequest("Invalid client request");
-            }
 
-            var claims = new List<Claim>
-                {
-                    new Claim(CustomClaims.UserId, "0"),
-                };
+            var claims = new List<Claim>();
+              
 
             var wscookie = Request.Cookies["WSCOOKIE"];
 
@@ -146,6 +151,19 @@ namespace bachelor_work_backend.Controllers
             }
             else
             {
+                var email = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "email").Value;
+                var password = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "password").Value;
+
+                var user = AuthenticationService.Login(email, password);
+
+                if(user == null)
+                {
+                    return Unauthorized();
+                }
+
+
+
+                claims.Add(new Claim(CustomClaims.UserId, user.Id.ToString()));
                 // external user claims
                 claims.Add(new Claim(CustomClaims.StagToken, "false"));
                 claims.Add(new Claim(CustomClaims.UserName, ""));
@@ -187,14 +205,6 @@ namespace bachelor_work_backend.Controllers
                 authProperties);
 
             return Ok(new { Token = string.Empty });
-            //var authenticationResult = await AuthenticationService.Authorize();
-
-
-            //if (authenticationResult.Result == AuthorizationResultEnum.ok)
-            //{
-            //    return Ok(new { Token = authenticationResult.TokenString });
-            //}
-            //return Unauthorized();
         }
 
         [HttpGet, Route("authorize")]

@@ -11,6 +11,12 @@ namespace bachelor_work_backend.Database
     [Table("User")]
     public partial class User
     {
+        public User()
+        {
+            BlockActionAttendances = new HashSet<BlockActionAttendance>();
+            BlockActionPeopleEnrollQueues = new HashSet<BlockActionPeopleEnrollQueue>();
+        }
+
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -36,5 +42,10 @@ namespace bachelor_work_backend.Database
         [Column("guid")]
         [StringLength(100)]
         public string Guid { get; set; }
+
+        [InverseProperty(nameof(BlockActionAttendance.User))]
+        public virtual ICollection<BlockActionAttendance> BlockActionAttendances { get; set; }
+        [InverseProperty(nameof(BlockActionPeopleEnrollQueue.User))]
+        public virtual ICollection<BlockActionPeopleEnrollQueue> BlockActionPeopleEnrollQueues { get; set; }
     }
 }

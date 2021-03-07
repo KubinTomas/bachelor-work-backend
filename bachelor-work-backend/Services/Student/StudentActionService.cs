@@ -454,7 +454,7 @@ namespace bachelor_work_backend.Services.Student
 
         public bool CanSignOffFromAction(BlockAction action)
         {
-            return action.AttendanceSignOffEndDate >= DateTime.Now;
+            return action.AttendanceSignOffEndDate >= DateTime.Now && !(DateTime.Now >= action.StartDate);
         }
 
         public bool DateRestrictionCanSignToAction(BlockAction action)

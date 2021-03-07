@@ -191,7 +191,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             return persons;
         }
 
-        public async Task<ActionPersonDTO> GetActionPersonDTO(BlockActionAttendance attendance, string wscookie)
+        public async Task<ActionPersonDTO?> GetActionPersonDTO(BlockActionAttendance attendance, string wscookie)
         {
             var student = new StagStudent();
             var isStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo);
@@ -199,13 +199,18 @@ namespace bachelor_work_backend.Services.SubjectFolder
             if (isStudent)
             {
                 student = await StagApiService.StagStudentApiService.GetStudentInfo(attendance.StudentOsCislo, wscookie);
+
+                if(student == null)
+                {
+                    student = new StagStudent();
+                }
             }
 
             return new ActionPersonDTO
             {
                 Id = attendance.Id,
                 StudentOsCislo = attendance.StudentOsCislo,
-                Fullname = isStudent ? student.jmeno + " " + student.prijmeni : "",
+                Fullname = isStudent ? student.jmeno + " " + student.prijmeni : (attendance.User.Name + " " +attendance.User.Surname),
                 IsStagStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo),
                 EvaluationDate = attendance.EvaluationDate,
                 Fulfilled = attendance.Fulfilled,

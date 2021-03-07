@@ -68,6 +68,11 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.ActionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BlockActionAttendance_BlockAction");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.BlockActionAttendances)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_BlockActionAttendance_User");
             });
 
             modelBuilder.Entity<BlockActionPeopleEnrollQueue>(entity =>
@@ -77,6 +82,11 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.ActionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_BlockActionPeopleEnrollQueue_BlockAction");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.BlockActionPeopleEnrollQueues)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_BlockActionPeopleEnrollQueue_User");
             });
 
             modelBuilder.Entity<BlockActionRestriction>(entity =>

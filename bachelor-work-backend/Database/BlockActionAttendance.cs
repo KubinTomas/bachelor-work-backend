@@ -31,5 +31,8 @@ namespace bachelor_work_backend.Database
         [ForeignKey(nameof(ActionId))]
         [InverseProperty(nameof(BlockAction.BlockActionAttendances))]
         public virtual BlockAction Action { get; set; }
+        [ForeignKey(nameof(UserId))]
+        [InverseProperty("BlockActionAttendances")]
+        public virtual User User { get; set; }
     }
 }

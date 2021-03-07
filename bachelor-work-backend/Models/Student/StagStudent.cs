@@ -36,5 +36,11 @@ namespace bachelor_work_backend.Models.Student
         public object studijniKruh { get; set; }
         public string evidovanBankovniUcet { get; set; }
         public string statutPredmetu { get; set; }
+
+        public StagStudent()
+        {
+            rocnik = string.Empty;
+            fakultaSp = string.Empty;
+        }
     }
 }

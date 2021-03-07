@@ -71,6 +71,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             var subjectsDTO = new List<SubjectDTO>();
 
             var subjects = context.Subjects.Where(c => c.IsActive && c.Fakulta == userInfo.Fakulta && c.Katedra == userInfo.Katedra).ToList();
+             subjects = context.Subjects.ToList();
 
             foreach (var subject in subjects)
             {

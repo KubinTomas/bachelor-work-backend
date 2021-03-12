@@ -36,6 +36,7 @@ namespace bachelor_work_backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+          
             // UI use PROXY
             // DEPLOYE, pouzit URL a UI pod domenu
             // V ramci rychlosti zahodit cors
@@ -50,8 +51,11 @@ namespace bachelor_work_backend
 
             // HttpClient approche
             // https://stackoverflow.com/questions/59280153/dependency-injection-httpclient-or-httpclientfactory?fbclid=IwAR2DMiQrsPyCA1fy64UU0qOtO1EPA09kFc4LVK_aHnvTAFQtZboGi_PAXLg
-          
-            services.AddDbContext<BachContext>();
+
+            var server = Configuration.GetSection("ConnectionStrings").GetValue<string>("BachContext");
+
+            services.AddDbContext<BachContext>(options =>
+                options.UseSqlServer(server));
 
             services.AddCors(opt =>
             {
@@ -69,28 +73,7 @@ namespace bachelor_work_backend
                     .AllowCredentials());
             });
 
-            //var key = Configuration.GetSection("AppSettings").GetValue<string>("StagApiURL");
-
-            // Issuer a audience dat taky do app settings
-
-            //[Obsolete]
-            //services.AddAuthentication(opt =>
-            //{
-            //    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            //}).AddJwtBearer(options =>
-            //{
-            //    options.TokenValidationParameters = new TokenValidationParameters
-            //    {
-            //        ValidateIssuer = true,
-            //        ValidateAudience = true,
-            //        ValidateLifetime = true,
-            //        ValidateIssuerSigningKey = true,
-            //        ValidIssuer = "https://localhost:44380",
-            //        ValidAudience = "http://localhost:4200",
-            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("SecretKey"))) // todo dat jako env variable
-            //    };
-            //});
+        
             var mapperConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new MappingProfile());

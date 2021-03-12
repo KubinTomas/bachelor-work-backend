@@ -37,6 +37,7 @@ namespace bachelor_work_backend.Controllers
             Configuration = configuration;
             AuthenticationService = new Services.AuthenticationService(configuration, new StagApiService(configuration, clientFactory), context);
             //this.signInManager = signInManager;
+
         }
 
         [HttpGet, Route("role/student")]
@@ -381,5 +382,47 @@ namespace bachelor_work_backend.Controllers
                 return Ok(AuthenticationService.GetDbUser(userId));
             }
         }
+
+        [HttpGet, Route("email/send-confirm")]
+        public async Task<IActionResult> SendConfirmAccountEmail()
+        {
+            var email = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "email").Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("specifie-email");
+            }
+
+            var result = AuthenticationService.SendConfirmAccountEmail(email);
+
+            if (!result)
+            {
+                return BadRequest("user-email-was-not-send");
+            }
+
+            return Ok();
+        }
+
+        [HttpGet, Route("account/confirm")]
+        public async Task<IActionResult> ConfirmAccount()
+        {
+            var userGuid = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "guid").Value;
+
+            if (string.IsNullOrEmpty(userGuid))
+            {
+                return BadRequest("specifie-guid");
+            }
+
+            var result = AuthenticationService.ConfirmAccount(userGuid);
+
+            if (!result)
+            {
+                return BadRequest("user-not-found");
+            }
+
+            return Ok();
+        }
+
+    
     }
 }

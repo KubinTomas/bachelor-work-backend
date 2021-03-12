@@ -22,12 +22,15 @@ namespace bachelor_work_backend.Services
         public IConfiguration Configuration { get; private set; }
         public StagApiService StagApiService { get; private set; }
         public BachContext Context { get; private set; }
+        public MailService MailService { get; private set; }
+
 
         public AuthenticationService(IConfiguration configuration, StagApiService stagApiService, BachContext context)
         {
             Configuration = configuration;
             StagApiService = stagApiService;
             Context = context;
+            MailService = new MailService(configuration);
         }
 
         public async Task<AuthenticationResult> Authorize()
@@ -193,6 +196,41 @@ namespace bachelor_work_backend.Services
         public bool VerifyPassword(string password, string passwordHashed)
         {
             return BCrypt.Net.BCrypt.Verify(password, passwordHashed);
+        }
+
+        public bool ConfirmAccount(string userGuid)
+        {
+            var user = Context.Users.SingleOrDefault(c => c.Guid == userGuid);
+
+            if(user == null)
+            {
+                return false;
+            }
+
+            user.Confirmed = true;
+
+            Context.SaveChanges();
+
+            return true;
+        }
+
+        public bool SendConfirmAccountEmail(string email)
+        {
+            var user = Context.Users.SingleOrDefault(c => c.Email == email.ToLower().Trim());
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            if (!user.Confirmed)
+            {
+                MailService.SendConfirmationMail(user.Email, user.Guid);
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

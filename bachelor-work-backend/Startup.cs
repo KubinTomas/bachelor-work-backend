@@ -102,8 +102,14 @@ namespace bachelor_work_backend
 
             app.UseCors(EnableCorsPolicy);
 
+            var origins = new List<string>()
+            {
+                "http://localhost:4200",
+                "https://shinyapps.ki.ujep.cz/restag"
+            };
+
             app.UseCors(
-                options => options.WithOrigins("http://localhost:4200").AllowAnyMethod()
+                options => options.WithOrigins(origins.ToArray()).AllowAnyMethod()
             );
 
             app.UseAuthentication();

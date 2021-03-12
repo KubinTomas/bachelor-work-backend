@@ -53,6 +53,14 @@ namespace bachelor_work_backend.Controllers
             AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
         }
 
+        [HttpGet, Route("get-test")]
+        public async Task<IActionResult> Get()
+        {
+           
+            return Ok();
+        }
+
+
 
         [HttpPost, Route("create")]
         public async Task<IActionResult> Create(BlockActionDTO actionDTO)

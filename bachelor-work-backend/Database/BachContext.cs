@@ -29,6 +29,7 @@ namespace bachelor_work_backend.Database
         public virtual DbSet<SubjectInYearTerm> SubjectInYearTerms { get; set; }
         public virtual DbSet<TermStagConnection> TermStagConnections { get; set; }
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<UserPasswordRecovery> UserPasswordRecoveries { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -145,6 +146,15 @@ namespace bachelor_work_backend.Database
                     .HasForeignKey(d => d.SubjectInYearTermId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_TermStagConnection_SubjectInYearTerm");
+            });
+
+            modelBuilder.Entity<UserPasswordRecovery>(entity =>
+            {
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserPasswordRecoveries)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UserPasswordRecovery_User");
             });
 
             OnModelCreatingPartial(modelBuilder);

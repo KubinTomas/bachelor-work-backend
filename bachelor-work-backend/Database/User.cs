@@ -15,6 +15,7 @@ namespace bachelor_work_backend.Database
         {
             BlockActionAttendances = new HashSet<BlockActionAttendance>();
             BlockActionPeopleEnrollQueues = new HashSet<BlockActionPeopleEnrollQueue>();
+            UserPasswordRecoveries = new HashSet<UserPasswordRecovery>();
         }
 
         [Key]
@@ -47,5 +48,7 @@ namespace bachelor_work_backend.Database
         public virtual ICollection<BlockActionAttendance> BlockActionAttendances { get; set; }
         [InverseProperty(nameof(BlockActionPeopleEnrollQueue.User))]
         public virtual ICollection<BlockActionPeopleEnrollQueue> BlockActionPeopleEnrollQueues { get; set; }
+        [InverseProperty(nameof(UserPasswordRecovery.User))]
+        public virtual ICollection<UserPasswordRecovery> UserPasswordRecoveries { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace bachelor_work_backend.Services.Utils
             SmtpClient smtp = new SmtpClient();
 
             smtp.Port = 587;
-            smtp.Host = "smtp.gmail.com"; 
+            smtp.Host = "smtp.gmail.comW"; 
             smtp.EnableSsl = true;
             smtp.UseDefaultCredentials = false;
             smtp.Credentials = GetNetworkCredential();

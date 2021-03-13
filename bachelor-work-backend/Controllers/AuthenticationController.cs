@@ -403,6 +403,29 @@ namespace bachelor_work_backend.Controllers
             return Ok();
         }
 
+
+        [HttpGet, Route("password/send-recover")]
+        public async Task<IActionResult> RecoverPassword()
+        {
+            var email = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "email").Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("specifie-email");
+            }
+
+            var user = AuthenticationService.GetUser(email);
+
+            if (user == null)
+            {
+                return BadRequest("user-email-is-not-in-system");
+            }
+
+             AuthenticationService.RecoverPassword(user);
+
+            return Ok();
+        }
+
         [HttpGet, Route("account/confirm")]
         public async Task<IActionResult> ConfirmAccount()
         {

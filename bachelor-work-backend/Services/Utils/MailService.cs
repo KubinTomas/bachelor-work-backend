@@ -15,7 +15,7 @@ namespace bachelor_work_backend.Services.Utils
 
         public MailService(IConfiguration configuration)
         {
-           Configuration = configuration;
+            Configuration = configuration;
         }
 
 
@@ -47,6 +47,21 @@ namespace bachelor_work_backend.Services.Utils
             smtp.Send(message);
         }
 
+        public void SendPasswordRecoveryMail(string mailTo, string userGuid, DateTime validUntil)
+        {
+            MailMessage message = new MailMessage();
+            var smtp = GetSmpt();
+            message.From = new MailAddress(GetMailFrom());
+            message.To.Add(new MailAddress(mailTo));
+
+            message.Subject = "Obnovení hesla";
+            message.IsBodyHtml = true; //to make message body as html  
+            message.Body = "Dobrý den, byla zaznamenáná žádost o obnovení hesla. Pro změnu hesla klikněte na následující odkaz. Odkaz je platný do "
+                + validUntil.ToString("d.M.yyyy H:m") + "." 
+                + "<br>" + GetPasswordRecoverUrl(userGuid);
+
+            smtp.Send(message);
+        }
         public void SendConfirmationMail(string mailTo, string userGuid)
         {
             MailMessage message = new MailMessage();
@@ -66,7 +81,7 @@ namespace bachelor_work_backend.Services.Utils
             SmtpClient smtp = new SmtpClient();
 
             smtp.Port = 587;
-            smtp.Host = "smtp.gmail.com"; 
+            smtp.Host = "smtp.gmail.com";
             smtp.EnableSsl = true;
             smtp.UseDefaultCredentials = false;
             smtp.Credentials = GetNetworkCredential();
@@ -80,6 +95,10 @@ namespace bachelor_work_backend.Services.Utils
             return Configuration.GetSection("Mail").GetValue<string>("ConfrimUrl") + "/" + userGuid;
         }
 
+        private string GetPasswordRecoverUrl(string userGuid)
+        {
+            return Configuration.GetSection("Mail").GetValue<string>("PasswordRecoverUrl") + "/" + userGuid;
+        }
 
         private string GetMailFrom()
         {
@@ -90,7 +109,7 @@ namespace bachelor_work_backend.Services.Utils
         {
             var password = Configuration.GetSection("Mail").GetValue<string>("MailFromAddressPassword");
 
-            return new NetworkCredential(GetMailFrom(), password); 
+            return new NetworkCredential(GetMailFrom(), password);
         }
     }
 }

@@ -169,6 +169,21 @@ namespace bachelor_work_backend.Services
             return Context.Users.SingleOrDefault(c => c.Email.ToLower() == email.Trim().ToLower());
         }
 
+        public void RecoverPassword(User user)
+        {
+            var passwordRecovery = new UserPasswordRecovery
+            {
+                Guid = Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                ValidUntil = DateTime.Now.AddMinutes(30)
+            };
+
+            Context.UserPasswordRecoveries.Add(passwordRecovery);
+            Context.SaveChanges();
+
+            MailService.SendPasswordRecoveryMail(user.Email, passwordRecovery.Guid, passwordRecovery.ValidUntil);
+        }
+
         public User? GetUser(int id)
         {
             return Context.Users.SingleOrDefault(c => c.Id == id);
@@ -177,7 +192,7 @@ namespace bachelor_work_backend.Services
         {
             var user = GetUser(email);
 
-            if(user == null)
+            if (user == null)
             {
                 return null;
             }
@@ -202,7 +217,7 @@ namespace bachelor_work_backend.Services
         {
             var user = Context.Users.SingleOrDefault(c => c.Guid == userGuid);
 
-            if(user == null)
+            if (user == null)
             {
                 return false;
             }

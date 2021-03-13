@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using bachelor_work_backend.Database;
 using Microsoft.Extensions.Configuration;
 
 namespace bachelor_work_backend.Services.Utils
@@ -17,6 +18,34 @@ namespace bachelor_work_backend.Services.Utils
            Configuration = configuration;
         }
 
+
+        public void SendKickFromActionMail(string mailTo, BlockAction action)
+        {
+            MailMessage message = new MailMessage();
+            var smtp = GetSmpt();
+            message.From = new MailAddress(GetMailFrom());
+            message.To.Add(new MailAddress(mailTo));
+
+            message.Subject = "Zrušení akce: " + action.Name + ", konající se " + action.StartDate.ToString("d.M.yyyy H:m");
+            message.IsBodyHtml = true; //to make message body as html  
+            message.Body = "Dobrý den, akce na kterou jste přihlášen byla zrušena.";
+
+            smtp.Send(message);
+        }
+
+        public void SendKickFromActionQueueMail(string mailTo, BlockAction action)
+        {
+            MailMessage message = new MailMessage();
+            var smtp = GetSmpt();
+            message.From = new MailAddress(GetMailFrom());
+            message.To.Add(new MailAddress(mailTo));
+
+            message.Subject = "Zrušení akce: " + action.Name + ", konající se " + action.StartDate.ToString("d.M.yyyy H:m");
+            message.IsBodyHtml = true; //to make message body as html  
+            message.Body = "Dobrý den, akce na kterou jste přihlášen byla zrušena. Došlo tedy k uvolnění z fronty čekatelů.";
+
+            smtp.Send(message);
+        }
 
         public void SendConfirmationMail(string mailTo, string userGuid)
         {

@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bachelor_work_backend.Database;
 
 namespace bachelor_work_backend.Migrations
 {
     [DbContext(typeof(BachContext))]
-    partial class BachContextModelSnapshot : ModelSnapshot
+    [Migration("20210313091805_addIsDeletedToAction")]
+    partial class addIsDeletedToAction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

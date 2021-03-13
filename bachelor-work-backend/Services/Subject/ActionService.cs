@@ -18,6 +18,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
     public class ActionService
     {
         private readonly BachContext context;
+        private readonly MailService mailService;
         private readonly IMapper mapper;
         public StagApiService StagApiService { get; private set; }
         public ActionService(BachContext context, IMapper mapper, StagApiService StagApiService)
@@ -25,6 +26,12 @@ namespace bachelor_work_backend.Services.SubjectFolder
             this.context = context;
             this.mapper = mapper;
             this.StagApiService = StagApiService;
+
+        }
+
+        public ActionService(BachContext context, IMapper mapper, StagApiService StagApiService, MailService mailService) : this(context, mapper, StagApiService)
+        {
+            this.mailService = mailService;
         }
 
         public void Update(BlockActionDTO actionDTO)
@@ -103,7 +110,8 @@ namespace bachelor_work_backend.Services.SubjectFolder
             ActionQueueKick(GetQueue(id));
         }
 
-        public async Task<ActionPersonDTO> AddStudent(StudentDTO student, string wscookie){
+        public async Task<ActionPersonDTO> AddStudent(StudentDTO student, string wscookie)
+        {
             var attendance = new BlockActionAttendance
             {
                 ActionId = student.blockOrActionId,
@@ -196,21 +204,33 @@ namespace bachelor_work_backend.Services.SubjectFolder
             var student = new StagStudent();
             var isStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo);
 
+            var userName = string.Empty;
+
             if (isStudent)
             {
                 student = await StagApiService.StagStudentApiService.GetStudentInfo(attendance.StudentOsCislo, wscookie);
 
-                if(student == null)
+                if (student == null)
                 {
                     student = new StagStudent();
                 }
             }
+            else
+            {
+                var user = GetUser(attendance.UserId.Value);
+
+                if(user != null)
+                {
+                    userName = (user.Name + " " + user.Surname);
+                }
+            }
+
 
             return new ActionPersonDTO
             {
                 Id = attendance.Id,
                 StudentOsCislo = attendance.StudentOsCislo,
-                Fullname = isStudent ? student.jmeno + " " + student.prijmeni : (attendance.User.Name + " " +attendance.User.Surname),
+                Fullname = isStudent ? student.jmeno + " " + student.prijmeni : userName,
                 IsStagStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo),
                 EvaluationDate = attendance.EvaluationDate,
                 Fulfilled = attendance.Fulfilled,
@@ -234,21 +254,86 @@ namespace bachelor_work_backend.Services.SubjectFolder
         }
 
 
-        public void Delete(int actionId)
+        public async Task Delete(int actionId, string wscookie)
         {
             var action = Get(actionId);
 
             if (action != null)
             {
-                Delete(action);
+                await Delete(action, wscookie);
             }
         }
 
-        public void Delete(BlockAction action)
+        public async Task Delete(BlockAction action, string wscookie)
         {
-            action.IsActive = false;
+            action.isDeleted = true;
+
+            await SetAttendanceToFalse( action, wscookie);
+            await ClearQueue(action, wscookie);
+
             context.SaveChanges();
         }
+
+        private async Task SetAttendanceToFalse(BlockAction action, string wscookie)
+        {
+            var attendants = action.BlockActionAttendances.ToList();
+
+            foreach (var c in attendants)
+            {
+                c.EvaluationDate = DateTime.Now;
+                c.Fulfilled = false;
+
+                context.SaveChanges();
+
+                var email = await GetUserEmail(c.StudentOsCislo, c.UserId, wscookie);
+
+                mailService.SendKickFromActionMail(email, action);
+            }
+
+        }
+
+        private User? GetUser(int userId)
+        {
+            return context.Users.SingleOrDefault(c => c.Id == userId);
+        }
+
+        private async Task<string> GetUserEmail(string studentOsCislo, int? userId, string wscookie)
+        {
+            var email = string.Empty;
+
+            if (userId.HasValue)
+            {
+                email = GetUser(userId.Value)?.Email;
+            }
+            else if (!string.IsNullOrEmpty(studentOsCislo))
+            {
+                var student = await StagApiService.StagStudentApiService.GetStudentInfo(studentOsCislo, wscookie);
+
+                if (student != null)
+                {
+                    email = student.email;
+                }
+
+            }
+
+            return email;
+        }
+
+        private async Task ClearQueue(BlockAction action, string wscookie)
+        {
+            var people = action.BlockActionPeopleEnrollQueues.ToList();
+
+            context.RemoveRange(people);
+            context.SaveChanges();
+
+            foreach (var c in people)
+            {
+                var email = await GetUserEmail(c.StudentOsCislo, c.UserId, wscookie);
+
+                mailService.SendKickFromActionQueueMail(email, action);
+            }
+        }
+
 
         public void Create(BlockAction action)
         {

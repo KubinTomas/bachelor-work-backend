@@ -32,6 +32,7 @@ namespace bachelor_work_backend.DTO.student
         public bool CanSignOfTheAction { get; set; }
         public bool DateRestrictionCanSignIn { get; set; }
         public int OrderInQueue { get; set; }
+        public bool IsDeleted { get; set; }
 
     }
 }

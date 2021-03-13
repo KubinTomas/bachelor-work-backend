@@ -75,7 +75,7 @@ namespace bachelor_work_backend.Services.Student
         {
             if (filter.SignEnum == ActionSignInEnum.CanSignIn)
             {
-                actions = actions.Where(c => !c.BlockActionAttendances.Any(c => c.StudentOsCislo == filter.StudentOsCislo) && !c.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == filter.StudentOsCislo));
+                actions = actions.Where(c => !c.isDeleted && !c.BlockActionAttendances.Any(c => c.StudentOsCislo == filter.StudentOsCislo) && !c.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == filter.StudentOsCislo));
             }
 
             if (filter.SignEnum == ActionSignInEnum.SignedIn)
@@ -195,7 +195,20 @@ namespace bachelor_work_backend.Services.Student
             return order;
         }
 
-        public StudentBlockActionDTO GetUserActionDTO(BlockAction action, int userId)
+        public StudentBlockActionDTO GetUserActionDTO(int actionId, int userId)
+        {
+            var action = GetStudentAction(actionId);
+
+            if (action == null)
+            {
+                return default;
+            }
+
+            return GetUserActionDTO(action, userId);
+        }
+
+
+            public StudentBlockActionDTO GetUserActionDTO(BlockAction action, int userId)
         {
             var actionDto = mapper.Map<BlockAction, StudentBlockActionDTO>(action);
 

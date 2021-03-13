@@ -46,6 +46,8 @@ namespace bachelor_work_backend.Database
         public bool Visible { get; set; }
         [Column("isActive")]
         public bool IsActive { get; set; }
+        [Column("isDeleted")]
+        public bool isDeleted { get; set; }
         [Column("groupId")]
         public int GroupId { get; set; }
         [Required]

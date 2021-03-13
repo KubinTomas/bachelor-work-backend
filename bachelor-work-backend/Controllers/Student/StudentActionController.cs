@@ -59,22 +59,16 @@ namespace bachelor_work_backend.Controllers.Student
         [HttpGet, Route("{id}")]
         public async Task<IActionResult> GetAction(int id)
         {
-            var wscookie = Request.Cookies["WSCOOKIE"];
+            var validateResult = await Validate();
 
-            if (string.IsNullOrEmpty(wscookie))
+            if (!validateResult.IsValid)
             {
-                return Unauthorized();
+                return validateResult.ActionResult;
             }
 
-            var userName = await GetUserStagName();
-
-            if (string.IsNullOrEmpty(userName))
-            {
-                return Unauthorized();
-            }
-
-            var actionDto = StudentActionService.GetStudentActionDTO(id, userName);
-
+            var actionDto = validateResult.IsStudent ? StudentActionService.GetStudentActionDTO(id, validateResult.StudentOsCislo) :
+                 StudentActionService.GetUserActionDTO(id, validateResult.UserId);
+         
             if (actionDto == null)
             {
                 return BadRequest("action-not-found");
@@ -188,6 +182,11 @@ namespace bachelor_work_backend.Controllers.Student
                 return BadRequest("action-id-for-user-not-permitted");
             }
 
+            if (action.isDeleted)
+            {
+                return BadRequest("action-is-deleted");
+            }
+
             if (StudentActionService.IsActionFull(action))
             {
                 return BadRequest("action-is-full");
@@ -239,6 +238,11 @@ namespace bachelor_work_backend.Controllers.Student
             if (action == null)
             {
                 return BadRequest("action-id-for-user-not-permitted");
+            }
+
+            if (action.isDeleted)
+            {
+                return BadRequest("action-is-deleted");
             }
 
             if (!StudentActionService.IsActionFull(action))

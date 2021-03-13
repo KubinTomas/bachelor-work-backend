@@ -34,5 +34,7 @@ namespace bachelor_work_backend.DTO.subject
 
         public BlockDTO? Block { get; set; }
 
+        public bool IsDeleted { get; set; }
+
     }
 }

@@ -47,7 +47,7 @@ namespace bachelor_work_backend.Controllers
             Configuration = configuration;
             StagApiService = new StagApiService(configuration, clientFactory);
 
-            ActionService = new ActionService(context, mapper, StagApiService);
+            ActionService = new ActionService(context, mapper, StagApiService, new MailService(configuration));
             TermService = new SubjectInYearTermService(context, mapper, StagApiService);
             BlockService = new BlockService(context, mapper, StagApiService);
             AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
@@ -135,7 +135,7 @@ namespace bachelor_work_backend.Controllers
                 return Forbid();
             }
 
-            ActionService.Delete(action);
+            await ActionService.Delete(action, wscookie);
 
             return Ok();
         }

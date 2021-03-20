@@ -157,12 +157,17 @@ namespace bachelor_work_backend.Controllers
 
                 var user = AuthenticationService.Login(email, password);
 
+
+
                 if(user == null)
                 {
-                    return Unauthorized();
+                    return BadRequest("error-login-failed");
                 }
 
-
+                if (!user.Confirmed)
+                {
+                    return BadRequest("error-confirm-account");
+                }
 
                 claims.Add(new Claim(CustomClaims.UserId, user.Id.ToString()));
                 // external user claims

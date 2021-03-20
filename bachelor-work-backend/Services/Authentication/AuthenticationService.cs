@@ -162,6 +162,8 @@ namespace bachelor_work_backend.Services
             Context.Users.Add(user);
             Context.SaveChanges();
 
+            SendConfirmAccountEmail(user.Email);
+
             return true;
         }
 

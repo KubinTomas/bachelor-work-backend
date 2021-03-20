@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.action;
 using Microsoft.Extensions.Configuration;
 
 namespace bachelor_work_backend.Services.Utils
@@ -18,7 +19,19 @@ namespace bachelor_work_backend.Services.Utils
             Configuration = configuration;
         }
 
+        public void SendMail(SendMailDto mail)
+        {
+            MailMessage message = new MailMessage();
+            var smtp = GetSmpt();
+            message.From = new MailAddress(GetMailFrom());
+            mail.Emails.ForEach(c => message.To.Add(c));
 
+            message.Subject = mail.Subject;
+            message.IsBodyHtml = true; //to make message body as html  
+            message.Body = mail.Content;
+
+            smtp.Send(message);
+        }
         public void SendKickFromActionMail(string mailTo, BlockAction action)
         {
             MailMessage message = new MailMessage();

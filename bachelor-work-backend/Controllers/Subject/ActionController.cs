@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AutoMapper;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.action;
 using bachelor_work_backend.DTO.student;
 using bachelor_work_backend.DTO.subject;
 using bachelor_work_backend.DTO.Whitelist;
@@ -29,7 +30,7 @@ namespace bachelor_work_backend.Controllers
         private readonly BachContext context;
         public AuthenticationService AuthenticationService { get; private set; }
         public ActionService ActionService { get; private set; }
-        public BlockService BlockService{ get; private set; }
+        public BlockService BlockService { get; private set; }
         public SubjectInYearTermService TermService { get; private set; }
         public StagApiService StagApiService { get; private set; }
         public IConfiguration Configuration { get; private set; }
@@ -56,7 +57,7 @@ namespace bachelor_work_backend.Controllers
         [HttpGet, Route("get-test")]
         public async Task<IActionResult> Get()
         {
-           
+
             return Ok();
         }
 
@@ -232,7 +233,7 @@ namespace bachelor_work_backend.Controllers
 
             var action = ActionService.Get(actionId);
 
-            if(action == null)
+            if (action == null)
             {
                 return BadRequest();
             }
@@ -405,6 +406,53 @@ namespace bachelor_work_backend.Controllers
             var person = await ActionService.AddStudent(student, wscookie);
 
             return Ok(person);
+        }
+
+
+
+
+        [HttpPost, Route("mail/send")]
+        public async Task<IActionResult> SendMail(MailDto mail)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var action = ActionService.Get(mail.ActionId);
+
+            if (action == null)
+            {
+                return BadRequest();
+            }
+
+            var block = BlockService.Get(action.BlockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            await ActionService.SendMail(mail, wscookie);
+
+            return Ok();
         }
 
 

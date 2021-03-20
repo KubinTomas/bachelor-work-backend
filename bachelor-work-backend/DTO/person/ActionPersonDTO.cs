@@ -17,5 +17,6 @@ namespace bachelor_work_backend.DTO.person
         public string rocnik { get; set; }
         public string fakultaSp { get; set; }
         public int queueOrder { get; set; }
+        public string email { get; set; }
     }
 }

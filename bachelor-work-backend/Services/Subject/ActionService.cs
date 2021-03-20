@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using bachelor_work_backend.Database;
+using bachelor_work_backend.DTO.action;
 using bachelor_work_backend.DTO.person;
 using bachelor_work_backend.DTO.Rozvrh;
 using bachelor_work_backend.DTO.student;
@@ -205,6 +206,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             var isStudent = !string.IsNullOrEmpty(attendance.StudentOsCislo);
 
             var userName = string.Empty;
+            var email = string.Empty;
 
             if (isStudent)
             {
@@ -214,6 +216,8 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 {
                     student = new StagStudent();
                 }
+
+                email = student.email;
             }
             else
             {
@@ -222,6 +226,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 if(user != null)
                 {
                     userName = (user.Name + " " + user.Surname);
+                    email = user.Email;
                 }
             }
 
@@ -235,7 +240,8 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 EvaluationDate = attendance.EvaluationDate,
                 Fulfilled = attendance.Fulfilled,
                 rocnik = student.rocnik,
-                fakultaSp = student.fakultaSp
+                fakultaSp = student.fakultaSp,
+                email = email
             };
 
         }
@@ -369,6 +375,24 @@ namespace bachelor_work_backend.Services.SubjectFolder
             }
 
             return actionsDTO;
+        }
+
+        public async Task SendMail(MailDto mail, string wscookie)
+        {
+            var action = Get(mail.ActionId);
+
+            if (action == null)
+            {
+                return;
+            }
+
+            var signedUsers = await GetSignedPersons(action.BlockActionAttendances.ToList(), wscookie);
+
+            var emails = signedUsers.Where(c => !string.IsNullOrEmpty(c.email)).Select(c => c.email).ToList();
+
+            var sendMail = new SendMailDto(emails, mail.Subject, mail.Content);
+
+            mailService.SendMail(sendMail);
         }
 
         //public async Task<BlockDTO> GetSingleDTOAsync(int blockId, string ucitelIdno, string wscookie)

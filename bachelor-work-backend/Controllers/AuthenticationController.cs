@@ -446,6 +446,31 @@ namespace bachelor_work_backend.Controllers
             return Ok();
         }
 
-    
+
+        [HttpGet, Route("account/password-recover")]
+        public async Task<IActionResult> PasswordRecover()
+        {
+            var userGuid = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "guid").Value;
+            var password = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "password").Value;
+
+            if (string.IsNullOrEmpty(userGuid))
+            {
+                return BadRequest("password-recovery-error-specifie-guid");
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                return BadRequest("password-recovery-error-specifie-password");
+            }
+
+            var result = AuthenticationService.PasswordRecover(userGuid, password);
+
+            if (!result)
+            {
+                return BadRequest("password-recovery-error-failed");
+            }
+
+            return Ok();
+        }
+
     }
 }

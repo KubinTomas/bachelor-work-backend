@@ -5,6 +5,7 @@ using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.Services.Authentication;
 using bachelor_work_backend.Services.Utils;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -154,7 +155,7 @@ namespace bachelor_work_backend.Services
                 Email = userDTO.Email.Trim(),
                 Guid = Guid.NewGuid().ToString(),
                 Confirmed = false,
-                Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password)
+                Password = GetHashPassowrd(userDTO.Password)
             };
 
 
@@ -162,6 +163,11 @@ namespace bachelor_work_backend.Services
             Context.SaveChanges();
 
             return true;
+        }
+
+        private string GetHashPassowrd(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public User? GetUser(string email)
@@ -246,6 +252,28 @@ namespace bachelor_work_backend.Services
             }
 
             return false;
+        }
+
+
+        public bool PasswordRecover(string userGuid, string password)
+        {
+            var recovery = Context.UserPasswordRecoveries.Include(c => c.User).SingleOrDefault(c => c.Guid == userGuid);
+
+            if (recovery == null)
+            {
+                return false;
+            }
+
+            if(recovery.ValidUntil < DateTime.Now)
+            {
+                return false;
+            }
+
+            recovery.User.Password = GetHashPassowrd(password);
+
+            Context.SaveChanges();
+
+            return true;
         }
     }
 }

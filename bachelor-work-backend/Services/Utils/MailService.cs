@@ -57,7 +57,7 @@ namespace bachelor_work_backend.Services.Utils
             message.Subject = "Obnovení hesla";
             message.IsBodyHtml = true; //to make message body as html  
             message.Body = "Dobrý den, byla zaznamenáná žádost o obnovení hesla. Pro změnu hesla klikněte na následující odkaz. Odkaz je platný do "
-                + validUntil.ToString("d.M.yyyy H:m") + "." 
+                + validUntil.ToString("d.M.yyyy H:mm") + "." 
                 + "<br>" + GetPasswordRecoverUrl(userGuid);
 
             smtp.Send(message);

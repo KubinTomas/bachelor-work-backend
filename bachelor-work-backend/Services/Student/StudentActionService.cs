@@ -48,8 +48,8 @@ namespace bachelor_work_backend.Services.Student
 
             actions.ToList().ForEach(c =>
             {
-                var actionDto = filter.IsStudent? GetStudentActionDTO(c, filter.StudentOsCislo) : GetUserActionDTO(c, filter.UserId);
-               
+                var actionDto = filter.IsStudent ? GetStudentActionDTO(c, filter.StudentOsCislo) : GetUserActionDTO(c, filter.UserId);
+
                 actionsDto.Add(actionDto);
             });
 
@@ -124,6 +124,7 @@ namespace bachelor_work_backend.Services.Student
                 .Include(c => c.BlockActionPeopleEnrollQueues)
                 .Include(c => c.Block.BlockStagUserWhitelists)
                 .Include(c => c.Block.BlockRestriction)
+                .Include(c => c.Block.SubjectInYearTerm.SubjectInYear.Subject)
                 .Where(c => c.IsActive && c.Visible &&
                 (!c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList ||
                 (c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList && c.Block.BlockStagUserWhitelists.Any(c => c.StudentOsCislo == filter.StudentOsCislo))));
@@ -139,6 +140,7 @@ namespace bachelor_work_backend.Services.Student
             .Include(c => c.BlockActionPeopleEnrollQueues)
             .Include(c => c.Block.BlockStagUserWhitelists)
             .Include(c => c.Block.BlockRestriction)
+            .Include(c => c.Block.SubjectInYearTerm.SubjectInYear.Subject)
             .Where(c => c.IsActive && c.Visible && c.BlockActionRestriction.AllowExternalUsers);
 
             return actions;
@@ -162,11 +164,11 @@ namespace bachelor_work_backend.Services.Student
         public int GetOrderInQueue(BlockAction action, int userId)
         {
             var order = 1;
-            var queueList = action.BlockActionPeopleEnrollQueues.Select(c => userId).ToList();
+            var queueList = action.BlockActionPeopleEnrollQueues.OrderBy(c => c.Id).Select(c => c.UserId).ToList();
 
             foreach (var queue in queueList)
             {
-                if (queue == userId)
+                if (queue.HasValue && queue.Value == userId)
                 {
                     return order;
                 }
@@ -191,7 +193,7 @@ namespace bachelor_work_backend.Services.Student
 
                 order++;
             }
-     
+
             return order;
         }
 
@@ -208,7 +210,7 @@ namespace bachelor_work_backend.Services.Student
         }
 
 
-            public StudentBlockActionDTO GetUserActionDTO(BlockAction action, int userId)
+        public StudentBlockActionDTO GetUserActionDTO(BlockAction action, int userId)
         {
             var actionDto = mapper.Map<BlockAction, StudentBlockActionDTO>(action);
 
@@ -274,6 +276,7 @@ namespace bachelor_work_backend.Services.Student
                .Include(c => c.BlockActionPeopleEnrollQueues)
                .Include(c => c.Block.BlockStagUserWhitelists)
                .Include(c => c.Block.BlockRestriction)
+               .Include(c => c.Block.SubjectInYearTerm.SubjectInYear.Subject)
             .SingleOrDefault(c => c.Id == id && c.IsActive && c.Visible && c.BlockActionRestriction.AllowExternalUsers);
         }
 
@@ -285,6 +288,7 @@ namespace bachelor_work_backend.Services.Student
                .Include(c => c.BlockActionPeopleEnrollQueues)
                .Include(c => c.Block.BlockStagUserWhitelists)
                .Include(c => c.Block.BlockRestriction)
+               .Include(c => c.Block.SubjectInYearTerm.SubjectInYear.Subject)
             .SingleOrDefault(c => c.Id == id && c.IsActive && c.Visible &&
             (!c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList ||
             (c.BlockActionRestriction.AllowOnlyStudentsOnWhiteList && c.Block.BlockStagUserWhitelists.Any(c => c.StudentOsCislo == studentOsCislo))));
@@ -398,8 +402,8 @@ namespace bachelor_work_backend.Services.Student
 
         public bool StudentJoinAction(BlockAction action, int userId)
         {
-            if (!DateRestrictionCanSignToAction(action) 
-                || IsStudentSignedInActionQueue(action, userId) 
+            if (!DateRestrictionCanSignToAction(action)
+                || IsStudentSignedInActionQueue(action, userId)
                 || IsStudentSignedInAction(action, userId)
                 || !BlockAttendanceRestrictionAllowSignIn(action, userId))
             {
@@ -444,9 +448,9 @@ namespace bachelor_work_backend.Services.Student
 
         public bool StudentJoinActionQueue(BlockAction action, int userId)
         {
-            if (!DateRestrictionCanSignToAction(action) || 
-                IsStudentSignedInActionQueue(action, userId) || 
-                IsStudentSignedInAction(action, userId) || 
+            if (!DateRestrictionCanSignToAction(action) ||
+                IsStudentSignedInActionQueue(action, userId) ||
+                IsStudentSignedInAction(action, userId) ||
                 !BlockAttendanceRestrictionAllowSignIn(action, userId))
             {
                 return false;
@@ -568,7 +572,7 @@ namespace bachelor_work_backend.Services.Student
 
             return true;
         }
-        
+
 
         /// <summary>
         /// Zatim funguje jen pro studenty
@@ -601,7 +605,7 @@ namespace bachelor_work_backend.Services.Student
                         StudentLeaveActionQueue(action, personToMove.UserId.Value, true);
                     }
                 }
-                else if(!string.IsNullOrEmpty(personToMove.StudentOsCislo))
+                else if (!string.IsNullOrEmpty(personToMove.StudentOsCislo))
                 {
                     var result = StudentJoinActionQueue(action, personToMove.StudentOsCislo);
 

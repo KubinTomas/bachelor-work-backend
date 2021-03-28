@@ -73,6 +73,9 @@ namespace bachelor_work_backend.AutoMapper
             CreateMap<BlockAction, StudentBlockActionDTO>()
                  .ForMember(c => c.CanSignOfTheAction, s => s.MapFrom(c => c.AttendanceSignOffEndDate >= DateTime.Now))
                  .ForMember(c => c.MaxCapacity, s => s.MapFrom(c => c.BlockActionRestriction.MaxCapacity))
+                 .ForMember(c => c.SubjectName, s => s.MapFrom(c => c.Block.SubjectInYearTerm.SubjectInYear.Subject.Name))
+                 .ForMember(c => c.SubjectTerm, s => s.MapFrom(c => c.Block.SubjectInYearTerm.Term))
+                 .ForMember(c => c.SubjectYear, s => s.MapFrom(c => c.Block.SubjectInYearTerm.SubjectInYear.Year))
                  .ForMember(c => c.UsersInQueueCount, s => s.MapFrom(c => c.BlockActionPeopleEnrollQueues.Count))
                  .ForMember(c => c.SignedUsersCount, s => s.MapFrom(c => c.BlockActionAttendances.Count));
         }

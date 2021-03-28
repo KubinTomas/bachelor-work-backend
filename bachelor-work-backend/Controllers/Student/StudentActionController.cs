@@ -86,6 +86,9 @@ namespace bachelor_work_backend.Controllers.Student
 
             var stagTokenClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.StagToken);
             var userIdClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserId);
+            var roleClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.Role);
+
+         
 
             var wscookie = Request.Cookies["WSCOOKIE"];
 
@@ -99,6 +102,11 @@ namespace bachelor_work_backend.Controllers.Student
                 var userName = await GetUserStagName();
 
                 if (string.IsNullOrEmpty(userName))
+                {
+                    return new ValidationModel(Unauthorized());
+                }
+
+                if (roleClaim == null || !Constants.StagRole.StuentRoles.Contains(roleClaim.Value))
                 {
                     return new ValidationModel(Unauthorized());
                 }

@@ -53,7 +53,9 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
         public void Update(BlockAction action, BlockActionDTO actionDTO)
         {
-            action.Name = actionDTO.Name;
+            action.Location = actionDTO.Location;
+            action.Description = actionDTO.Description;
+            action.Visible = actionDTO.Visible;
 
             context.SaveChanges();
         }

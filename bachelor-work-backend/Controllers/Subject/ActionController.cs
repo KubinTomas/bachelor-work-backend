@@ -455,6 +455,54 @@ namespace bachelor_work_backend.Controllers
             return Ok();
         }
 
+        [HttpGet, Route("attendance/set-all/{actionId}/{attendanceId}")]
+        public async Task<IActionResult> ChangeActionUserAttendance(int actionId, int attendanceId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var action = ActionService.Get(actionId);
+
+            if (action == null)
+            {
+                return BadRequest();
+            }
+
+            var block = BlockService.Get(action.BlockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var res = ActionService.ChangeActionUserAttendance(actionId, attendanceId);
+
+            if(res == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(res);
+        }
 
     }
 }

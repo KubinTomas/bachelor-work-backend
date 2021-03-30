@@ -395,6 +395,33 @@ namespace bachelor_work_backend.Services.SubjectFolder
             mailService.SendMail(sendMail);
         }
 
+        public ChangeActionUserAttendanceResultDTO? ChangeActionUserAttendance(int actionId, int attendance)
+        {
+            var action = Get(actionId);
+            var res = new ChangeActionUserAttendanceResultDTO();
+
+            if (action == null)
+            {
+                return null;
+            }
+
+            var signedUsers = action.BlockActionAttendances.ToList();
+
+            var now = DateTime.Now;
+            res.Date = now;
+            res.Fulfilled = attendance == 1;
+
+            signedUsers.ForEach(c =>
+            {
+                c.EvaluationDate = now;
+                c.Fulfilled = attendance == 1;
+            });
+
+            context.SaveChanges();
+
+            return res;
+        }
+
         //public async Task<BlockDTO> GetSingleDTOAsync(int blockId, string ucitelIdno, string wscookie)
         //{
         //    var block = Get(blockId);

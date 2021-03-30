@@ -75,7 +75,13 @@ namespace bachelor_work_backend.Services.Student
         {
             if (filter.SignEnum == ActionSignInEnum.CanSignIn)
             {
-                actions = actions.Where(c => !c.isDeleted && !c.BlockActionAttendances.Any(c => c.StudentOsCislo == filter.StudentOsCislo) && !c.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == filter.StudentOsCislo));
+                actions = actions.Where(c => 
+                !c.isDeleted && 
+                !c.BlockActionAttendances.Any(c => c.StudentOsCislo == filter.StudentOsCislo) &&
+                !c.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == filter.StudentOsCislo)
+                && (c.AttendanceAllowStartDate == null ||DateTime.Now >= c.AttendanceAllowStartDate.Value)
+                && (c.AttendanceAllowEndDate == null ||DateTime.Now <= c.AttendanceAllowEndDate.Value)
+                );
             }
 
             if (filter.SignEnum == ActionSignInEnum.SignedIn)

@@ -36,7 +36,7 @@ namespace bachelor_work_backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-          
+
             // UI use PROXY
             // DEPLOYE, pouzit URL a UI pod domenu
             // V ramci rychlosti zahodit cors
@@ -55,7 +55,11 @@ namespace bachelor_work_backend
             var server = Configuration.GetSection("ConnectionStrings").GetValue<string>("BachContext");
 
             services.AddDbContext<BachContext>(options =>
-                options.UseSqlServer(server));
+            {
+                options.EnableSensitiveDataLogging();
+                options.UseSqlServer(server);
+            });
+
 
             services.AddCors(opt =>
             {
@@ -73,7 +77,7 @@ namespace bachelor_work_backend
                     .AllowCredentials());
             });
 
-        
+
             var mapperConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new MappingProfile());

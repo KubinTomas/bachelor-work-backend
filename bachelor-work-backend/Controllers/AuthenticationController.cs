@@ -152,6 +152,15 @@ namespace bachelor_work_backend.Controllers
             }
             else
             {
+                var emailHeader = HttpContext.Request.Headers.ContainsKey("email");
+                var passwordHeader = HttpContext.Request.Headers.ContainsKey("password");
+
+
+                if (!emailHeader || !passwordHeader)
+                {
+                    return BadRequest("error-no-email-or-password-provided");
+                }
+
                 var email = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "email").Value;
                 var password = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "password").Value;
 

@@ -1,8 +1,10 @@
-﻿using bachelor_work_backend.Database;
+﻿using AutoMapper;
+using bachelor_work_backend.Database;
 using bachelor_work_backend.DTO.person;
 using bachelor_work_backend.Models;
 using bachelor_work_backend.Models.Authentication;
 using bachelor_work_backend.Services.Authentication;
+using bachelor_work_backend.Services.Student;
 using bachelor_work_backend.Services.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -24,14 +26,18 @@ namespace bachelor_work_backend.Services
         public StagApiService StagApiService { get; private set; }
         public BachContext Context { get; private set; }
         public MailService MailService { get; private set; }
+        public StudentActionService StudentActionService { get; private set; }
+
+        
 
 
-        public AuthenticationService(IConfiguration configuration, StagApiService stagApiService, BachContext context)
+        public AuthenticationService(IConfiguration configuration, StagApiService stagApiService, BachContext context, IMapper mapper)
         {
             Configuration = configuration;
             StagApiService = stagApiService;
             Context = context;
             MailService = new MailService(configuration);
+            StudentActionService = new StudentActionService(context, mapper, StagApiService);
         }
 
         public async Task<AuthenticationResult> Authorize()
@@ -273,6 +279,45 @@ namespace bachelor_work_backend.Services
 
             recovery.User.Password = GetHashPassowrd(password);
 
+            Context.SaveChanges();
+
+            return true;
+        }
+
+        public bool DeleteAccount(int userId, string password)
+        {
+            var user = Context.Users.SingleOrDefault(c => c.Id == userId);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            if(!VerifyPassword(password, user.Password))
+            {
+                return false;
+            }
+
+            var queues = Context.BlockActionPeopleEnrollQueues.Where(c => c.UserId == userId);
+            Context.BlockActionPeopleEnrollQueues.RemoveRange(queues);
+
+            Context.SaveChanges();
+
+            var actions = Context.BlockActionAttendances.Where(c => c.UserId == userId);
+            var actionsIds = actions.Select(c => c.ActionId).ToList();
+
+            Context.BlockActionAttendances.RemoveRange(actions);
+            Context.SaveChanges();
+
+            actionsIds.ForEach(c => {
+                StudentActionService.TryMovePeopleInQueue(c);
+            });
+
+            var recoveries = Context.UserPasswordRecoveries.Where(c => c.UserId == userId);
+            Context.UserPasswordRecoveries.RemoveRange(recoveries);
+            Context.SaveChanges();
+
+            Context.Users.Remove(user);
             Context.SaveChanges();
 
             return true;

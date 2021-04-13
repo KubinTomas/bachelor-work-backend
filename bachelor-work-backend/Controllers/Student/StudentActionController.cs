@@ -52,7 +52,7 @@ namespace bachelor_work_backend.Controllers.Student
             Configuration = configuration;
             StagApiService = new StagApiService(configuration, clientFactory);
 
-            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context, mapper);
             StudentActionService = new StudentActionService(context, mapper, StagApiService);
         }
 

@@ -47,7 +47,7 @@ namespace bachelor_work_backend.Controllers.Student
             Configuration = configuration;
             StagApiService = new StagApiService(configuration, clientFactory);
 
-            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context, mapper);
         }
 
         [HttpGet, Route("student/{studentOsCislo}")]

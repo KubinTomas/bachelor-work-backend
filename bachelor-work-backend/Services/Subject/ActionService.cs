@@ -8,6 +8,7 @@ using bachelor_work_backend.DTO.subject;
 using bachelor_work_backend.DTO.Whitelist;
 using bachelor_work_backend.Models.Rozvrh;
 using bachelor_work_backend.Models.Student;
+using bachelor_work_backend.Services.Student;
 using bachelor_work_backend.Services.Utils;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -20,6 +21,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
     {
         private readonly BachContext context;
         private readonly MailService mailService;
+        private readonly StudentActionService studentActionService;
         private readonly IMapper mapper;
         public StagApiService StagApiService { get; private set; }
         public ActionService(BachContext context, IMapper mapper, StagApiService StagApiService)
@@ -27,6 +29,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             this.context = context;
             this.mapper = mapper;
             this.StagApiService = StagApiService;
+            studentActionService = new StudentActionService(context, mapper, StagApiService);
 
         }
 
@@ -86,8 +89,12 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
         public void ActionAttendanceKick(BlockActionAttendance attendance)
         {
+            var actionId = attendance.ActionId;
+
             context.BlockActionAttendances.Remove(attendance);
             context.SaveChanges();
+
+            studentActionService.TryMovePeopleInQueue(actionId);
         }
 
         public void ActionAttendanceKick(int id)
@@ -243,7 +250,8 @@ namespace bachelor_work_backend.Services.SubjectFolder
                 Fulfilled = attendance.Fulfilled,
                 rocnik = student.rocnik,
                 fakultaSp = student.fakultaSp,
-                email = email
+                email = email,
+                DateIn = attendance.DateIn,
             };
 
         }

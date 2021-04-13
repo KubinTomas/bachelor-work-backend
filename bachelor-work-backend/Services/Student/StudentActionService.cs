@@ -27,6 +27,7 @@ namespace bachelor_work_backend.Services.Student
             this.StagApiService = StagApiService;
         }
 
+
         public List<StudentBlockActionDTO> GetActions(ActionPostModelDTO filter)
         {
             IQueryable<BlockAction> actions;
@@ -302,25 +303,25 @@ namespace bachelor_work_backend.Services.Student
 
         public bool IsStudentSignedInActionQueue(BlockAction action, string studentOsCislo)
         {
-            return action.BlockActionAttendances.Any(c => c.StudentOsCislo == studentOsCislo);
+            return action.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == studentOsCislo);
 
         }
 
         public bool IsStudentSignedInActionQueue(BlockAction action, int userId)
         {
-            return action.BlockActionAttendances.Any(c => c.UserId == userId);
-
+            return action.BlockActionPeopleEnrollQueues.Any(c => c.UserId == userId);
+            
         }
 
         public bool IsStudentSignedInAction(BlockAction action, int userId)
         {
-            return action.BlockActionPeopleEnrollQueues.Any(c => c.UserId == userId);
+            return action.BlockActionAttendances.Any(c => c.UserId == userId);
         }
 
 
         public bool IsStudentSignedInAction(BlockAction action, string studentOsCislo)
         {
-            return action.BlockActionPeopleEnrollQueues.Any(c => c.StudentOsCislo == studentOsCislo);
+            return action.BlockActionAttendances.Any(c => c.StudentOsCislo == studentOsCislo);
         }
 
         public int BlockAttendanceRestrictionAllowSignInMessageCode()
@@ -385,9 +386,14 @@ namespace bachelor_work_backend.Services.Student
             return (attendanceToEvaluate + attendanceFinished + attendanceInQueueWhichCanStillMoveUserToAttendance) < blockMaxActionAttendLimit;
         }
 
-        public bool StudentJoinAction(BlockAction action, string studentOsCislo)
+        public bool StudentJoinAction(BlockAction action, string studentOsCislo, bool ignoreActionQueue = false)
         {
-            if (!DateRestrictionCanSignToAction(action) || IsStudentSignedInActionQueue(action, studentOsCislo) || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
+            if (!DateRestrictionCanSignToAction(action)  || IsStudentSignedInAction(action, studentOsCislo) || !BlockAttendanceRestrictionAllowSignIn(action, studentOsCislo))
+            {
+                return false;
+            }
+
+            if (!ignoreActionQueue && IsStudentSignedInActionQueue(action, studentOsCislo))
             {
                 return false;
             }
@@ -406,12 +412,16 @@ namespace bachelor_work_backend.Services.Student
             return true;
         }
 
-        public bool StudentJoinAction(BlockAction action, int userId)
+        public bool StudentJoinAction(BlockAction action, int userId, bool ignoreActionQueue = false)
         {
             if (!DateRestrictionCanSignToAction(action)
-                || IsStudentSignedInActionQueue(action, userId)
                 || IsStudentSignedInAction(action, userId)
                 || !BlockAttendanceRestrictionAllowSignIn(action, userId))
+            {
+                return false;
+            }
+
+            if (!ignoreActionQueue && IsStudentSignedInActionQueue(action, userId))
             {
                 return false;
             }
@@ -597,14 +607,14 @@ namespace bachelor_work_backend.Services.Student
             var actionLimit = action.BlockActionRestriction.MaxCapacity;
             var signedPeopleCount = action.BlockActionAttendances.Count();
 
-            if (signedPeopleCount < actionLimit && action.BlockActionPeopleEnrollQueues.Count != 0)
+            if (signedPeopleCount < actionLimit && action.BlockActionPeopleEnrollQueues.Count != 0 && DateTime.Now <= action.AttendanceSignOffEndDate)
             {
                 var peopleInQueue = action.BlockActionPeopleEnrollQueues.OrderBy(c => c.DateIn);
                 var personToMove = action.BlockActionPeopleEnrollQueues.First();
 
                 if (personToMove.UserId.HasValue)
                 {
-                    var result = StudentJoinActionQueue(action, personToMove.UserId.Value);
+                    var result = StudentJoinAction(action, personToMove.UserId.Value, true);
 
                     if (result)
                     {
@@ -613,7 +623,7 @@ namespace bachelor_work_backend.Services.Student
                 }
                 else if (!string.IsNullOrEmpty(personToMove.StudentOsCislo))
                 {
-                    var result = StudentJoinActionQueue(action, personToMove.StudentOsCislo);
+                    var result = StudentJoinAction(action, personToMove.StudentOsCislo, true);
 
                     if (result)
                     {

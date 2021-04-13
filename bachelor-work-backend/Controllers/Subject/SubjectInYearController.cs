@@ -46,7 +46,7 @@ namespace bachelor_work_backend.Controllers
 
             SubjectInYearService = new SubjectInYearService(context, mapper, StagApiService);
             SubjectService = new SubjectService(context, mapper, StagApiService);
-            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context, mapper);
         }
 
 

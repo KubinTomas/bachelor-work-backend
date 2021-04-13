@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoMapper;
 using bachelor_work_backend.Database;
 using bachelor_work_backend.DTO.person;
 using bachelor_work_backend.Models;
@@ -31,11 +32,11 @@ namespace bachelor_work_backend.Controllers
 
         //private readonly SignInManager<ClaimsPrincipal> signInManager;
         //SignInManager<ClaimsPrincipal> signInManager
-        public AuthenticationController(IConfiguration configuration, IHttpClientFactory clientFactory, BachContext context)
+        public AuthenticationController(IConfiguration configuration, IHttpClientFactory clientFactory, BachContext context, IMapper mapper)
         {
             ClientFactory = clientFactory;
             Configuration = configuration;
-            AuthenticationService = new Services.AuthenticationService(configuration, new StagApiService(configuration, clientFactory), context);
+            AuthenticationService = new Services.AuthenticationService(configuration, new StagApiService(configuration, clientFactory), context, mapper);
             //this.signInManager = signInManager;
 
         }
@@ -481,6 +482,40 @@ namespace bachelor_work_backend.Controllers
             if (!result)
             {
                 return BadRequest("password-recovery-error-failed");
+            }
+
+            return Ok();
+        }
+
+
+        [HttpGet, Route("account/delete")]
+        public async Task<IActionResult> Delete()
+        {
+            var password = HttpContext.Request.Headers.SingleOrDefault(c => c.Key == "password").Value;
+
+            if (string.IsNullOrEmpty(password))
+            {
+                return BadRequest("password-is-required");
+            }
+
+            var user = User;
+            var claims = user.Claims.ToList();
+
+            var stagTokenClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.StagToken);
+            var userIdClaim = claims.SingleOrDefault(c => c.Type == CustomClaims.UserId);
+
+            if (stagTokenClaim.Value == "true")
+            {
+                return BadRequest();
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var res = AuthenticationService.DeleteAccount(userId, password);
+
+            if (!res)
+            {
+                return BadRequest();
             }
 
             return Ok();

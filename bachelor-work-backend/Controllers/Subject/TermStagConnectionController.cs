@@ -48,7 +48,7 @@ namespace bachelor_work_backend.Controllers
             TermService = new SubjectInYearTermService(context, mapper, StagApiService);
             TermStagConnectionService = new TermStagConnectionService(context, mapper, StagApiService);
             SubjectService = new SubjectService(context, mapper, StagApiService);
-            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context, mapper);
         }
 
         [HttpGet, Route("subjects")]

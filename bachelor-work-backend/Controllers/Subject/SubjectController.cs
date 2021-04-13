@@ -50,7 +50,7 @@ namespace bachelor_work_backend.Controllers
             StagApiService = new StagApiService(configuration, clientFactory);
 
             SubjectService = new SubjectService(context, mapper, StagApiService);
-            AuthenticationService = new Services.AuthenticationService(configuration, StagApiService, context);
+            AuthenticationService = new Services.AuthenticationService(configuration, StagApiService, context, mapper);
         }
 
 

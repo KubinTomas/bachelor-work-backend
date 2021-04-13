@@ -47,7 +47,7 @@ namespace bachelor_work_backend.Controllers
 
             BlockService = new BlockService(context, mapper, StagApiService);
             TermService = new SubjectInYearTermService(context, mapper, StagApiService);
-            AuthenticationService = new AuthenticationService(configuration, StagApiService, context);
+            AuthenticationService = new AuthenticationService(configuration, StagApiService, context, mapper);
         }
 
 

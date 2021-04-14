@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -54,7 +55,7 @@ namespace bachelor_work_backend.Controllers
             AuthenticationService = new AuthenticationService(configuration, StagApiService, context, mapper);
         }
 
-   
+
 
         [HttpPost, Route("create")]
         public async Task<IActionResult> Create(BlockActionDTO actionDTO)
@@ -489,12 +490,69 @@ namespace bachelor_work_backend.Controllers
 
             var res = ActionService.ChangeActionUserAttendance(actionId, attendanceId);
 
-            if(res == null)
+            if (res == null)
             {
                 return BadRequest();
             }
 
             return Ok(res);
+        }
+
+        [HttpGet, Route("attendance/excel/{actionId}")]
+        public async Task<IActionResult> GetActionAttendanceExcel(int actionId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var action = ActionService.Get(actionId);
+
+            if (action == null)
+            {
+                return BadRequest();
+            }
+
+            var block = BlockService.Get(action.BlockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var workbook = await ActionService.GetActionAttendanceExcel(actionId, wscookie);
+
+            if (workbook == null)
+            {
+                return BadRequest();
+            }
+
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = "akce_" + action.Id + ".xlsx";
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var content = stream.ToArray();
+                return File(content, contentType, fileName);
+            }
         }
 
     }

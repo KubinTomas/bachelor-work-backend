@@ -8,6 +8,7 @@ using bachelor_work_backend.DTO.Whitelist;
 using bachelor_work_backend.Models.Rozvrh;
 using bachelor_work_backend.Models.Student;
 using bachelor_work_backend.Services.Utils;
+using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -192,13 +193,13 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             var whitelist = GetWhitelist(blockId);
 
-            var students = new List <WhitelistStagStudentDTO>();
+            var students = new List<WhitelistStagStudentDTO>();
 
             foreach (var whitelistEntry in whitelist)
             {
                 var student = await StagApiService.StagStudentApiService.GetStudentInfo(whitelistEntry.StudentOsCislo, wscookie);
 
-                if(student != null)
+                if (student != null)
                 {
                     students.Add(mapper.Map<StagStudent, WhitelistStagStudentDTO>(student));
                 }
@@ -247,7 +248,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
                             rozvrhovaAkce.RozvrhovaAkce = mapper.Map<StagRozvrhoveAkce, WhitelistRozvrhovaAkceDTO>(akce);
                             rozvrhovaAkce.Students = akceStudenti.Select(c => mapper.Map<StagStudent, WhitelistStagStudentDTO>(c)).ToList();
 
-                            if(rozvrhovaAkce.Students.Count != 0)
+                            if (rozvrhovaAkce.Students.Count != 0)
                             {
                                 predmet.RozvrhoveAkce.Add(rozvrhovaAkce);
                             }
@@ -281,6 +282,42 @@ namespace bachelor_work_backend.Services.SubjectFolder
 
             context.BlockStagUserWhitelists.RemoveRange(whitelist);
             context.SaveChanges();
+        }
+
+
+
+        public async Task<XLWorkbook?> DownloadExcelBlockStudents(int blockId, string ucitelIdno,string wscookie)
+        {
+
+            var studentsDto = await GetBlockStudents(blockId, ucitelIdno, wscookie);
+
+
+            var workbook = new XLWorkbook();
+            IXLWorksheet worksheet = workbook.Worksheets.Add("Authors");
+            worksheet.Cell(1, 1).Value = "Číslo";
+            worksheet.Cell(1, 2).Value = "Jméno";
+            worksheet.Cell(1, 3).Value = "Ročník";
+            worksheet.Cell(1, 4).Value = "Fakulta";
+            worksheet.Cell(1, 5).Value = "Forma";
+            worksheet.Cell(1, 6).Value = "Docházka";
+            worksheet.Cell(1, 7).Value = "Splněno";
+
+
+            worksheet.Columns(1, 8).Width = 30;
+
+
+            for (int index = 1; index <= studentsDto.Count; index++)
+            {
+                worksheet.Cell(index + 1, 1).Value = studentsDto[index - 1].StudentOsCislo;
+                worksheet.Cell(index + 1, 2).Value = studentsDto[index - 1].Name;
+                worksheet.Cell(index + 1, 3).Value = studentsDto[index - 1].Rocnik;
+                worksheet.Cell(index + 1, 4).Value = studentsDto[index - 1].FakultaSp;
+                worksheet.Cell(index + 1, 5).Value = studentsDto[index - 1].FormaSp;
+                worksheet.Cell(index + 1, 6).Value = studentsDto[index - 1].AttendanceFulfillCount + "/"  + studentsDto[index - 1].BlockAttendanceCount;
+                worksheet.Cell(index + 1, 7).Value = studentsDto[index - 1].AttendanceFulfillCount >= studentsDto[index - 1].BlockAttendanceCount ? "ano" : "ne";
+            }
+
+            return workbook;
         }
     }
 }

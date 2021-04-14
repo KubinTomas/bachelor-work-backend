@@ -10,6 +10,7 @@ using bachelor_work_backend.Models.Rozvrh;
 using bachelor_work_backend.Models.Student;
 using bachelor_work_backend.Services.Student;
 using bachelor_work_backend.Services.Utils;
+using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -232,7 +233,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
             {
                 var user = GetUser(attendance.UserId.Value);
 
-                if(user != null)
+                if (user != null)
                 {
                     userName = (user.Name + " " + user.Surname);
                     email = user.Email;
@@ -284,7 +285,7 @@ namespace bachelor_work_backend.Services.SubjectFolder
         {
             action.isDeleted = true;
 
-            await SetAttendanceToFalse( action, wscookie);
+            await SetAttendanceToFalse(action, wscookie);
             await ClearQueue(action, wscookie);
 
             context.SaveChanges();
@@ -453,5 +454,50 @@ namespace bachelor_work_backend.Services.SubjectFolder
         //    return blockDto;
 
         //}
+
+        public async Task<XLWorkbook?> GetActionAttendanceExcel(int actionId, string wscookie)
+        {
+            var action = Get(actionId);
+
+            if (action == null)
+            {
+                return null;
+            }
+
+            var signedUsers = await GetSignedPersons(action.BlockActionAttendances.ToList(), wscookie);
+
+
+            var workbook = new XLWorkbook();
+            IXLWorksheet worksheet = workbook.Worksheets.Add("Authors");
+            worksheet.Cell(1, 1).Value = "Stag";
+            worksheet.Cell(1, 2).Value = "Číslo";
+            worksheet.Cell(1, 3).Value = "Jméno";
+            worksheet.Cell(1, 4).Value = "Ročník";
+            worksheet.Cell(1, 5).Value = "Fakulta";
+            worksheet.Cell(1, 6).Value = "Docházka";
+            worksheet.Cell(1, 7).Value = "Datum vyhodnocení";
+            worksheet.Cell(1, 8).Value = "Datum zápisu";
+
+
+            worksheet.Columns(1, 8).Width = 30;
+
+
+            for (int index = 1; index <= signedUsers.Count; index++)
+            {
+                worksheet.Cell(index + 1, 1).Value = signedUsers[index - 1].IsStagStudent ? "ano" : "ne";
+                worksheet.Cell(index + 1, 2).Value = signedUsers[index - 1].StudentOsCislo;
+                worksheet.Cell(index + 1, 3).Value = signedUsers[index - 1].Fullname;
+                worksheet.Cell(index + 1, 4).Value = signedUsers[index - 1].rocnik;
+                worksheet.Cell(index + 1, 5).Value = signedUsers[index - 1].fakultaSp;
+                worksheet.Cell(index + 1, 6).Value = signedUsers[index - 1].EvaluationDate.HasValue ?
+                    signedUsers[index - 1].Fulfilled ? "Splnil (zúčastnil se)" : "Nesplnil (nezúčastnil se)" : "čeká se na vyhodnocení..";
+                worksheet.Cell(index + 1, 7).Value = signedUsers[index - 1].EvaluationDate.HasValue ? signedUsers[index - 1].EvaluationDate.Value.ToString("dd.MM.yyyy H:mm") : "";
+                worksheet.Cell(index + 1, 8).Value = signedUsers[index - 1].DateIn.ToString("dd.MM.yyyy H:mm");
+            }
+
+            return workbook;
+        }
     }
+
+
 }

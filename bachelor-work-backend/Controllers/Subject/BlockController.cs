@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -333,6 +334,57 @@ namespace bachelor_work_backend.Controllers
 
             return Ok();
         }
+
+        [HttpGet, Route("students/excel/{blockId}")]
+        public async Task<IActionResult> DownloadExcelBlockStudents(int blockId)
+        {
+            var wscookie = Request.Cookies["WSCOOKIE"];
+
+            if (string.IsNullOrEmpty(wscookie))
+            {
+                return Unauthorized();
+            }
+
+            var ucitelIdno = await AuthenticationService.GetUcitelIdnoAsync(wscookie);
+
+            if (string.IsNullOrEmpty(ucitelIdno))
+            {
+                return Unauthorized();
+            }
+
+            var block = BlockService.Get(blockId);
+
+            if (block == null)
+            {
+                return BadRequest();
+            }
+
+            var subject = block.SubjectInYearTerm.SubjectInYear.Subject;
+            var hasPermission = await AuthenticationService.CanManageSubject(wscookie, subject);
+
+            if (!hasPermission)
+            {
+                return Forbid();
+            }
+
+            var workbook = await BlockService.DownloadExcelBlockStudents(blockId, ucitelIdno, wscookie);
+
+            if (workbook == null)
+            {
+                return BadRequest();
+            }
+
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = "blok_" + blockId + ".xlsx";
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var content = stream.ToArray();
+                return File(content, contentType, fileName);
+            }
+        }
+
 
     }
 }
